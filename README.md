@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ascento Abacus Landing Page
 
-## Getting Started
+A premium, modern, and high-performance landing page for **Ascento Abacus** — an elite education and training academy specializing in abacus, mental arithmetic, and cognitive development for children.
 
-First, run the development server:
+## ✨ Key Features
+
+- **🚀 Performance-First**: Built on the latest Next.js 15+ and React 19 architecture for lightning-fast delivery.
+- **🎨 Premium Aesthetics**: Stunning visuals using a curated Red/Rose color palette, glassmorphism, and modern typography (Outfit).
+- **🎢 Dynamic Interactivity**:
+    - **Cover-Flow Gallery**: A beautiful 3D image carousel powered by `Skiper-UI` (Swiper.js).
+    - **Smooth Animations**: Integrated `Framer Motion` for on-scroll reveals and interactive hover states.
+    - **Hero Transitions**: An animated image slider showcasing classroom environments.
+- **📱 Responsive Excellence**: Pixel-perfect layout across all breakpoints, from mobile handhelds to ultra-wide displays.
+- **🗺️ Interactive Location**: Embedded Google Maps for easy navigation to the Dwarka center.
+
+## 🛠️ Technology Stack
+
+- **Core**: [Next.js 15 (Turbopack)](https://nextjs.org/) & [React 19](https://react.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Components**: [Shadcn UI](https://ui.shadcn.com/) & [Skiper UI](https://skiper-ui.com/)
+- **Animation**: [Framer Motion](https://www.framer.com/motion/)
+- **Carousel**: [Swiper.js](https://swiperjs.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Font**: [Outfit](https://fonts.google.com/specimen/Outfit)
+
+## 📁 Project Structure
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+├── app/
+│   ├── components/       # Custom animation & UI components
+│   ├── globals.css      # Tailwind v4 configuration & base styles
+│   ├── layout.tsx       # Root layout & font infusion
+│   └── page.tsx         # Main landing page implementation
+├── components/ui/       # Shadcn & Skiper UI components
+│   └── skiper-ui/       # Advanced interactive components (Carousel_001)
+├── public/
+│   └── Images/          # Optimized image assets
+├── lib/                 # Core utility functions (cn helper)
+└── package.json         # Dependency manifest
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Getting Started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
+- **Node.js**: 20.x or higher
+- **Package Manager**: npm or yarn
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Installation
+1. Clone the repository.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-## Learn More
+### Development
+Launch the development server with Turbopack:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to see the live site.
 
-To learn more about Next.js, take a look at the following resources:
+### Production
+Build the optimized application:
+```bash
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🏢 About Ascento Abacus
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Established in **2010** as the Indian subsidiary of **Ascent International**, Ascento Abacus has empowered over **10,000+** families. Our curriculum combines traditional Japanese abacus techniques with modern Brain Gym activities to unlock creative intelligence in children aged 4–15.
 
-## Deploy on Vercel
+### 📚 Programs Offered
+- **Vedic Maths**: Mental calculation mastery for ages 11–35.
+- **Pre-Abacus**: Foundation for young minds (ages 4–6).
+- **Handwriting & Calligraphy**: Artistic writing improvement.
+- **Brain Gym**: Cognitive focus and mental agility exercises.
+- **Yoga & Aerobics**: Holistic physical and mental wellness.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📞 Contact Details
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Location**: Dwarka, New Delhi.
+- **Primary Phone**: +91-9818613720
+- **Email**: brainx.ascentabacus@gmail.com
+
+---
+
+Managed and Refined by **Antigravity**
