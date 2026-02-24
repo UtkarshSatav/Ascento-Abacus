@@ -18,7 +18,7 @@ export default function MobileMenu() {
             {/* Hamburger Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 text-gray-700 hover:text-red-600 transition-colors"
+                className="p-2 text-muted-foreground hover:text-primary transition-colors"
                 aria-label="Toggle menu"
             >
                 <svg
@@ -48,13 +48,13 @@ export default function MobileMenu() {
 
             {/* Mobile Menu */}
             <div
-                className={`fixed top-0 right-0 h-full w-64 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"
+                className={`fixed top-0 right-0 h-full w-64 bg-background shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"
                     }`}
             >
                 <div className="p-6">
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="absolute top-4 right-4 p-2 text-gray-700 hover:text-red-600"
+                        className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-primary"
                         aria-label="Close menu"
                     >
                         <svg
@@ -76,7 +76,7 @@ export default function MobileMenu() {
                                 key={item.href}
                                 href={item.href}
                                 onClick={() => setIsOpen(false)}
-                                className="block text-lg font-medium text-gray-700 hover:text-red-600 transition-colors py-2"
+                                className="block text-lg font-medium text-muted-foreground hover:text-primary transition-colors py-2"
                             >
                                 {item.label}
                             </a>
