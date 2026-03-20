@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   keywords: "abacus training, mental arithmetic, brain gym, Vedic maths, handwriting improvement, calligraphy, children education, franchise opportunities",
 };
 
+import AuthGuard from "./components/AuthGuard";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +33,9 @@ export default function RootLayout({
       <body
         className={`${lexend.variable} antialiased font-sans`}
       >
-        {children}
+        <AuthGuard>
+          {children}
+        </AuthGuard>
       </body>
     </html>
   );

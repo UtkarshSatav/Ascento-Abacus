@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "./components/Navbar";
@@ -7,6 +9,42 @@ import Footer from "./components/Footer";
 import { FadeIn, SlideIn, ScaleIn } from "./components/AnimatedSection";
 
 export default function Home() {
+  const [checking, setChecking] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check for demo admin session only
+    if (localStorage.getItem("demo_admin") === "true") {
+      router.push("/admin");
+    } else {
+      setChecking(false);
+    }
+  }, [router]);
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#020617]">
+        <div className="flex flex-col items-center gap-6">
+          <div className="text-[#197fe6] size-16 animate-pulse">
+            <svg className="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <path clipRule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fillRule="evenodd"></path>
+            </svg>
+          </div>
+          <div className="h-1 w-32 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-full bg-[#197fe6] animate-[shimmer_1.5s_infinite] w-1/2"></div>
+          </div>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 italic">Synchronizing Session</p>
+        </div>
+        <style jsx>{`
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex flex-col min-h-screen w-full overflow-x-hidden bg-[#f6f7f8] dark:bg-[#111921] font-sans text-[#0e141b] dark:text-slate-100 antialiased">
       <Navbar />

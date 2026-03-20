@@ -1,43 +1,132 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { 
+  User, 
+  LogOut, 
+  LayoutDashboard, 
+  Menu, 
+  X, 
+  ChevronDown,
+  Sparkles
+} from "lucide-react";
 
+/**
+ * DEMO NAVBAR
+ * Uses localStorage to simulate auth state for the client demo.
+ */
 export default function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    useEffect(() => {
+        // Simple check for demo logic
+        const checkAuth = () => {
+            setIsLoggedIn(localStorage.getItem("demo_admin") === "true");
+        };
+        checkAuth();
+        // Listen for changes (in case of login/logout)
+        window.addEventListener('storage', checkAuth);
+        return () => window.removeEventListener('storage', checkAuth);
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem("demo_admin");
+        setIsLoggedIn(false);
+        window.location.href = "/";
+    };
 
     return (
-        <header className="sticky top-0 z-50 bg-white/90 dark:bg-[#111921]/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <header className="sticky top-0 z-[100] bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 transition-all duration-500">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-3">
-                        <div className="text-[#197fe6] size-10 flex items-center justify-center">
+                    <Link href="/" className="flex items-center gap-3 group">
+                        <div className="text-[#197fe6] size-10 flex items-center justify-center transition-transform group-hover:scale-110">
                             <svg className="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                                 <path clipRule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fillRule="evenodd"></path>
                             </svg>
                         </div>
-                        <h1 className="text-xl font-bold tracking-tight text-[#0e141b] dark:text-white">Ascento Abacus</h1>
+                        <h1 className="text-xl font-black tracking-tight text-[#0e141b] dark:text-white bg-clip-text">
+                            Ascento <span className="text-[#197fe6]">Abacus</span>
+                        </h1>
                     </Link>
 
                     {/* Desktop Nav */}
-                    <nav className="hidden md:flex items-center gap-8">
-                        <Link className="text-sm font-medium hover:text-[#197fe6] transition-colors" href="/">Home</Link>
-                        <Link className="text-sm font-medium hover:text-[#197fe6] transition-colors" href="/programs">Programs</Link>
-                        <Link className="text-sm font-medium hover:text-[#197fe6] transition-colors" href="/franchise">Franchise</Link>
-                        <Link className="text-sm font-medium hover:text-[#197fe6] transition-colors" href="/contact">Contact</Link>
+                    <nav className="hidden md:flex items-center gap-10">
+                        {['Home', 'Programs', 'Franchise', 'Contact'].map((item) => (
+                            <Link 
+                                key={item}
+                                href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
+                                className="text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-[#197fe6] transition-all duration-300 relative group"
+                            >
+                                {item}
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#197fe6] transition-all group-hover:w-full"></span>
+                            </Link>
+                        ))}
                     </nav>
 
-                    {/* CTA */}
-                    <div className="flex items-center gap-4">
-                        <Link href="/contact" className="hidden lg:flex bg-[#197fe6] hover:bg-[#197fe6]/90 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-md shadow-[#197fe6]/20">
-                            Book a Demo
-                        </Link>
+                    {/* Auth Area */}
+                    <div className="flex items-center gap-6">
+                        {isLoggedIn ? (
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                    className="flex items-center gap-3 pl-4 py-1.5 pr-1.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:bg-slate-100 transition-all font-bold text-sm text-slate-700 dark:text-slate-300"
+                                >
+                                    <span className="hidden sm:inline">Portal Admin</span>
+                                    <div className="size-8 rounded-xl bg-[#197fe6] flex items-center justify-center text-white text-xs font-black shadow-lg shadow-[#197fe6]/20">
+                                        A
+                                    </div>
+                                    <ChevronDown size={14} className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isDropdownOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)}></div>
+                                        <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl p-3 z-20 overflow-hidden animate-in fade-in slide-in-from-top-5 duration-300">
+                                            <div className="p-4 bg-slate-50 dark:bg-slate-950/50 rounded-2xl mb-2">
+                                                <p className="text-xs font-black text-[#197fe6] uppercase tracking-widest mb-1 italic">Role: Master Admin</p>
+                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">admin@demo.com</p>
+                                            </div>
+                                            
+                                            <div className="space-y-1">
+                                                <Link 
+                                                    href="/admin" 
+                                                    onClick={() => setIsDropdownOpen(false)}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#197fe6] hover:bg-[#197fe6]/5 rounded-xl transition-all ring-1 ring-[#197fe6]/20 bg-[#197fe6]/5"
+                                                >
+                                                    <LayoutDashboard size={18} /> Admin Business Console
+                                                </Link>
+                                                
+                                                <button 
+                                                    onClick={handleLogout}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all"
+                                                >
+                                                    <LogOut size={18} /> Logout
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        ) : (
+                            <Link href="/login" className="flex items-center gap-2 group">
+                                <span className="hidden sm:inline text-sm font-black uppercase tracking-widest text-slate-500 group-hover:text-[#197fe6] transition-colors">Login</span>
+                                <div className="bg-[#197fe6] hover:bg-[#197fe6]/90 text-white px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-[#197fe6]/20 hover:scale-105 active:scale-95 flex items-center gap-2">
+                                    <Sparkles size={14} />
+                                    Get Started
+                                </div>
+                            </Link>
+                        )}
+                        
                         <button
-                            className="md:hidden text-[#0e141b] dark:text-white"
+                            className="md:hidden p-2 text-slate-900 dark:text-white hover:bg-slate-100 rounded-xl transition-all"
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         >
-                            <span className="material-symbols-outlined">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+                            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                         </button>
                     </div>
                 </div>
@@ -45,15 +134,29 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             {isMobileMenuOpen && (
-                <div className="md:hidden bg-white dark:bg-[#111921] border-b border-slate-200 dark:border-slate-800 p-4">
+                <div className="md:hidden bg-white dark:bg-[#020617] border-b border-slate-200 dark:border-slate-800 p-6 animate-in slide-in-from-top-10 duration-500">
                     <nav className="flex flex-col gap-4">
-                        <Link className="text-base font-medium hover:text-[#197fe6] transition-colors" href="/" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
-                        <Link className="text-base font-medium hover:text-[#197fe6] transition-colors" href="/programs" onClick={() => setIsMobileMenuOpen(false)}>Programs</Link>
-                        <Link className="text-base font-medium hover:text-[#197fe6] transition-colors" href="/franchise" onClick={() => setIsMobileMenuOpen(false)}>Franchise</Link>
-                        <Link className="text-base font-medium hover:text-[#197fe6] transition-colors" href="/contact" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
-                        <Link className="bg-[#197fe6] text-white px-6 py-3 rounded-lg text-center font-bold transition-all" href="/contact" onClick={() => setIsMobileMenuOpen(false)}>
-                            Book a Demo
-                        </Link>
+                        {['Home', 'Programs', 'Franchise', 'Contact'].map((item) => (
+                            <Link 
+                                key={item}
+                                className="text-lg font-black uppercase tracking-widest text-slate-500 hover:text-[#197fe6]" 
+                                href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                                {item}
+                            </Link>
+                        ))}
+                        <hr className="my-4 border-slate-100 dark:border-slate-800" />
+                        {isLoggedIn ? (
+                            <>
+                                <Link className="text-lg font-black uppercase tracking-widest text-[#197fe6]" href="/admin" onClick={() => setIsMobileMenuOpen(false)}>Open Admin Console</Link>
+                                <button onClick={handleLogout} className="text-lg font-black uppercase tracking-widest text-red-500 text-left">Logout</button>
+                            </>
+                        ) : (
+                            <Link className="bg-[#197fe6] text-white px-8 py-4 rounded-2xl text-center font-black uppercase tracking-widest transition-all shadow-xl shadow-[#197fe6]/20" href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                                Join Now
+                            </Link>
+                        )}
                     </nav>
                 </div>
             )}

@@ -7,6 +7,30 @@ import Footer from "../components/Footer";
 import { FadeIn, SlideIn, ScaleIn } from "../components/AnimatedSection";
 
 export default function ProgramsPage() {
+    const handleEnroll = async (courseName: string) => {
+        try {
+            const response = await fetch('http://localhost:5001/api/enrollments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userName: 'Sample Student', // In reality, fetch from auth
+                    userEmail: 'student@example.com',
+                    courseId: courseName.toLowerCase().replace(/\s+/g, '-'),
+                    courseName: courseName
+                })
+            });
+
+            if (response.ok) {
+                alert(`Successfully enrolled in ${courseName}!`);
+            } else {
+                alert('Enrollment failed. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error enrolling:', error);
+            alert('An error occurred during enrollment.');
+        }
+    };
+
     return (
         <div className="relative flex flex-col min-h-screen w-full overflow-x-hidden bg-[#f6f7f8] dark:bg-[#111921] font-sans text-slate-900 dark:text-slate-100 antialiased">
             <Navbar />
@@ -104,13 +128,19 @@ export default function ProgramsPage() {
                                             </li>
                                         ))}
                                     </ul>
-                                    <button className="w-full bg-[#197fe6] text-white py-3 rounded-lg font-semibold hover:bg-[#197fe6]/90 transition-colors">Enroll Now</button>
+                                    <button
+                                        onClick={() => handleEnroll(prog.title)}
+                                        className="w-full bg-[#197fe6] text-white py-3 rounded-lg font-semibold hover:bg-[#197fe6]/90 transition-colors"
+                                    >
+                                        Enroll Now
+                                    </button>
                                 </div>
                             </div>
                         </FadeIn>
                     ))}
                 </div>
             </main>
+
 
             {/* Methodology Highlight Section */}
             <section className="bg-[#197fe6]/5 dark:bg-slate-900/50 py-20">

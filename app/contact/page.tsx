@@ -5,8 +5,49 @@ import Link from "next/link";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { FadeIn, SlideIn, ScaleIn } from "../components/AnimatedSection";
+import { useState } from "react";
 
 export default function ContactPage() {
+    const [formData, setFormData] = useState({
+        name: '',
+        age: '',
+        phone: '',
+        program: 'Abacus Mental Math',
+        message: ''
+    });
+    const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('submitting');
+        try {
+            const response = await fetch('http://localhost:5001/api/inquiries', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: 'user@example.com', // Placeholder or add email field
+                    phone: formData.phone,
+                    message: `Age: ${formData.age}, Program: ${formData.program}, Message: ${formData.message}`
+                })
+            });
+
+            if (response.ok) {
+                setStatus('success');
+                setFormData({ name: '', age: '', phone: '', program: 'Abacus Mental Math', message: '' });
+            } else {
+                setStatus('error');
+            }
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            setStatus('error');
+        }
+    };
+
     return (
         <div className="relative flex flex-col min-h-screen w-full overflow-x-hidden bg-[#f6f7f8] dark:bg-[#111921] font-sans text-slate-900 dark:text-slate-100 antialiased transition-colors duration-300">
             <Navbar />
@@ -78,22 +119,60 @@ export default function ContactPage() {
                             <div className="bg-white dark:bg-slate-800 p-8 md:p-12 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 h-full">
                                 <h2 className="text-3xl font-bold mb-2">Admission Inquiry</h2>
                                 <p className="text-slate-600 dark:text-slate-400 mb-8">Fill out the form below and our counselor will call you back within 24 hours.</p>
-                                <form action="#" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {status === 'success' && (
+                                    <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
+                                        Your inquiry has been submitted successfully! We will contact you soon.
+                                    </div>
+                                )}
+                                {status === 'error' && (
+                                    <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
+                                        Something went wrong. Please try again later.
+                                    </div>
+                                )}
+                                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Parent Name</label>
-                                        <input className="w-full px-4 py-3 rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 focus:ring-[#197fe6] focus:border-[#197fe6] transition-all" placeholder="Enter your full name" type="text" />
+                                        <input
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full px-4 py-3 rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 focus:ring-[#197fe6] focus:border-[#197fe6] transition-all"
+                                            placeholder="Enter your full name"
+                                            type="text"
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Child's Age</label>
-                                        <input className="w-full px-4 py-3 rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 focus:ring-[#197fe6] focus:border-[#197fe6] transition-all" placeholder="Enter age (e.g. 7)" type="number" />
+                                        <input
+                                            name="age"
+                                            value={formData.age}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 focus:ring-[#197fe6] focus:border-[#197fe6] transition-all"
+                                            placeholder="Enter age (e.g. 7)"
+                                            type="number"
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Phone Number</label>
-                                        <input className="w-full px-4 py-3 rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 focus:ring-[#197fe6] focus:border-[#197fe6] transition-all" placeholder="+91 XXXXX XXXXX" type="tel" />
+                                        <input
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleChange}
+                                            required
+                                            className="w-full px-4 py-3 rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 focus:ring-[#197fe6] focus:border-[#197fe6] transition-all"
+                                            placeholder="+91 XXXXX XXXXX"
+                                            type="tel"
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Program of Interest</label>
-                                        <select className="w-full px-4 py-3 rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 focus:ring-[#197fe6] focus:border-[#197fe6] transition-all">
+                                        <select
+                                            name="program"
+                                            value={formData.program}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 focus:ring-[#197fe6] focus:border-[#197fe6] transition-all"
+                                        >
                                             <option>Abacus Mental Math</option>
                                             <option>Vedic Mathematics</option>
                                             <option>Calligraphy</option>
@@ -102,11 +181,22 @@ export default function ContactPage() {
                                     </div>
                                     <div className="space-y-2 md:col-span-2">
                                         <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Your Message</label>
-                                        <textarea className="w-full px-4 py-3 rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 focus:ring-[#197fe6] focus:border-[#197fe6] transition-all" placeholder="Tell us more about your child's requirements..." rows={4}></textarea>
+                                        <textarea
+                                            name="message"
+                                            value={formData.message}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 rounded-lg border-slate-200 dark:border-slate-600 dark:bg-slate-700 focus:ring-[#197fe6] focus:border-[#197fe6] transition-all"
+                                            placeholder="Tell us more about your child's requirements..."
+                                            rows={4}
+                                        ></textarea>
                                     </div>
                                     <div className="md:col-span-2">
-                                        <button className="w-full md:w-auto bg-[#197fe6] hover:bg-[#197fe6]/90 text-white px-10 py-4 rounded-lg font-bold text-lg transition-all flex items-center justify-center gap-2" type="submit">
-                                            Send Inquiry <span className="material-symbols-outlined">send</span>
+                                        <button
+                                            disabled={status === 'submitting'}
+                                            className="w-full md:w-auto bg-[#197fe6] hover:bg-[#197fe6]/90 text-white px-10 py-4 rounded-lg font-bold text-lg transition-all flex items-center justify-center gap-2"
+                                            type="submit"
+                                        >
+                                            {status === 'submitting' ? 'Sending...' : 'Send Inquiry'} <span className="material-symbols-outlined">send</span>
                                         </button>
                                     </div>
                                 </form>
