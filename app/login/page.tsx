@@ -44,7 +44,6 @@ export default function LoginPage() {
                             <span className="material-symbols-outlined text-3xl font-bold">admin_panel_settings</span>
                         </div>
                         <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">Admin Demo Portal</h1>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium italic">Hard-coded Client Demo Phase</p>
                     </div>
 
                     {error && (
