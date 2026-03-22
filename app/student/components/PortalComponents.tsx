@@ -103,9 +103,12 @@ export function Badge({ label, color }: { label: string, color?: string }) {
 }
 
 // --- CARD SHELL ---
-export function Card({ children, style = {} }: { children: React.ReactNode, style?: React.CSSProperties }) {
+export function Card({ children, style = {}, onClick }: { children: React.ReactNode, style?: React.CSSProperties, onClick?: () => void }) {
   return (
-    <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 16, padding: 20, ...style }}>
+    <div 
+      onClick={onClick}
+      style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 16, padding: 20, ...style }}
+    >
       {children}
     </div>
   );
