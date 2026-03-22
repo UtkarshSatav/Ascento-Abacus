@@ -7,24 +7,40 @@ import Link from "next/link";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { FadeIn, SlideIn, ScaleIn } from "./components/AnimatedSection";
+import { auth, db } from "../lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Home() {
   const [checking, setChecking] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Check for demo admin session only
-    if (localStorage.getItem("demo_admin") === "true") {
-      router.push("/admin");
-    } else {
-      setChecking(false);
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, "Users", user.uid));
+          if (userDoc.exists() && userDoc.data().Role?.trim().toLowerCase() === "admin") {
+            router.push("/admin");
+          } else {
+            setChecking(false);
+          }
+        } catch (err) {
+          console.error("Auth check error:", err);
+          setChecking(false);
+        }
+      } else {
+        setChecking(false);
+      }
+    });
+
+    return () => unsubscribe();
   }, [router]);
 
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#020617]">
-        <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-6 text-[#0e141b]">
           <div className="text-[#197fe6] size-16 animate-pulse">
             <svg className="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
               <path clipRule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fillRule="evenodd"></path>
@@ -33,7 +49,7 @@ export default function Home() {
           <div className="h-1 w-32 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div className="h-full bg-[#197fe6] animate-[shimmer_1.5s_infinite] w-1/2"></div>
           </div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 italic">Synchronizing Session</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 italic">Authenticating Secure Cloud Session</p>
         </div>
         <style jsx>{`
           @keyframes shimmer {
@@ -67,28 +83,13 @@ export default function Home() {
                     Empowering young minds through specialized abacus and cognitive training. Join 10,000+ students on a journey toward lifelong mathematical and mental excellence.
                   </p>
                   <div className="flex flex-wrap gap-4 pt-4">
-                    <Link href="/contact" className="bg-[#197fe6] hover:bg-[#197fe6]/90 text-white px-8 py-4 rounded-xl text-base font-bold transition-all shadow-lg shadow-[#197fe6]/20 flex items-center gap-2">
+                    <Link href="/contact" className="bg-[#197fe6] hover:bg-[#197fe6]/90 text-white px-8 py-4 rounded-xl text-base font-bold transition-all shadow-lg shadow-[#197fe6]/20 flex items-center gap-2 text-center justify-center">
                       Enroll Your Child <span className="material-symbols-outlined">arrow_forward</span>
                     </Link>
-                    <Link href="/franchise" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#f59e0b] text-[#0e141b] dark:text-white px-8 py-4 rounded-xl text-base font-bold transition-all flex items-center gap-2 group">
+                    <Link href="/franchise" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-[#f59e0b] text-[#0e141b] dark:text-white px-8 py-4 rounded-xl text-base font-bold transition-all flex items-center gap-2 group text-center justify-center">
                       <span className="text-[#f59e0b] material-symbols-outlined">storefront</span>
                       Explore Franchise Opportunity
                     </Link>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-slate-500">
-                    <div className="flex -space-x-2">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="size-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden relative">
-                          <Image
-                            src={`https://lh3.googleusercontent.com/aida-public/AB6AXuD89qL2sG8XTu7FgZs3JP8cPv1W2Ih7MpbMaQW-rKsX6ZUruFibjUWPX89d0rUZH4YgKTLzEtenucYWUX6VRlkIu9rrCD5PO6eO2pmgHeysPNd2-qfPAlOZawHsGw6wnPnnEh4gKcPKWE5gzNAeFPRDSf_gE9nNFB3K57JKGPvynbLyGCplcogEqgnsIncls0XWi0ZRqR4bMXG24SboyS8RE5L7SrgPLwDNjNWd7gBqX-Gk7PHCDBFGxA-Su8f-Y8mUtHqMCjEPqSE`}
-                            alt="Student"
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    <span>Trusted by 2,500+ Parents this month</span>
                   </div>
                 </div>
               </SlideIn>
@@ -96,26 +97,15 @@ export default function Home() {
               <ScaleIn delay={0.2}>
                 <div className="relative">
                   <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[#197fe6]/5 rounded-full blur-3xl"></div>
-                  <div className="rounded-3xl overflow-hidden shadow-2xl transform lg:rotate-2">
+                  <div className="rounded-3xl overflow-hidden shadow-2xl transform lg:rotate-2 border-4 border-white dark:border-slate-800">
                     <Image
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBewo1avpta46C5FKjcVXLRDCczZknlz6FSmy6NCgT0jYvQiQeQwG8vPPrPcaGkJHp1N-HJmUiQTQUBx-fB64zKrS-si2fmZz_-wSrFdVXNMXHuKpG6YzCAVV8D_F8T3L66nBr0DLRiMgKbMIK12pYUncLx8kexn7NvxoZVtbPlp3EFC8cKoudFUqE44yuWYXlPL8M72uBioBMz5DJjJtXmIGl4kYrB2K__ZdzlHD-HZcovUkqvzpWFvWdpynnz48ARlM4iT16sNPs"
-                      alt="Young child learning with colorful abacus"
+                      src="/Images/DSC_0037-scaled-1.jpg"
+                      alt="Ascento Abacus Learning Center"
                       width={800}
                       height={600}
                       className="w-full aspect-[4/3] object-cover"
+                      priority
                     />
-                  </div>
-                  {/* Floating Card */}
-                  <div className="absolute -bottom-6 -left-6 bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 hidden sm:block">
-                    <div className="flex items-center gap-4">
-                      <div className="size-12 bg-[#f59e0b]/20 text-[#f59e0b] rounded-full flex items-center justify-center">
-                        <span className="material-symbols-outlined font-bold">trending_up</span>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 uppercase font-bold tracking-widest">IQ Improvement</p>
-                        <p className="text-xl font-black text-[#0e141b] dark:text-white">+45% Avg.</p>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </ScaleIn>
@@ -144,51 +134,60 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Programs Overview */}
-        <section className="py-20 bg-[#f6f7f8] dark:bg-[#111921]">
+        {/* Programs Overview Section */}
+        <section className="py-24 bg-white dark:bg-[#0e141b]/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-[#f59e0b] font-bold text-sm uppercase tracking-[0.2em] mb-4">Our Curriculum</h2>
-              <h3 className="text-3xl lg:text-4xl font-black text-[#0e141b] dark:text-white">Empowering Every Learning Stage</h3>
+              <FadeIn>
+                <h2 className="text-[#f59e0b] font-bold text-sm uppercase tracking-[0.2em] mb-4">Our Curriculum</h2>
+                <h3 className="text-3xl md:text-5xl font-black text-[#0e141b] dark:text-white tracking-tight">Empowering Every Learning Stage</h3>
+              </FadeIn>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 {
                   title: "Abacus Mastery",
                   desc: "Foundation for mental arithmetic and lightning-fast calculations without calculators.",
-                  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCdFhqG9a9-fBgKLgbNPqwnO5voA87LfZmXLxHt4dmOHXmsnYUEXMdg322k0PM-pKokF0DIHWmxw1O8JPpF_3a3W1oFpRGZC-u9f_xx3VVSu5Whbhf3kVsk_QJxoa-n8MyBzqIDsApK3bkk4a3Y8DfASHrkxFWGvvYNW7rhMvN6-1zEqR70uqtHtPDG6BYeCZGDlNTn9rTKRXy39mFzO8xucea9PwtU5_R8gTVe0iaA1FH0M9VvyMbeoVlcvsdrFYO5IOR98aqeCks"
+                  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCdFhqG9a9-fBgKLgbNPqwnO5voA87LfZmXLxHt4dmOHXmsnYUEXMdg322k0PM-pKokF0DIHWmxw1O8JPpF_3a3W1oFpRGZC-u9f_xx3VVSu5Whbhf3kVsk_QJxoa-n8MyBzqIDsApK3bkk4a3Y8DfASHrkxFWGvvYNW7rhMvN6-1zEqR70uqtHtPDG6BYeCZGDlNTn9rTKRXy39mFzO8xucea9PwtU5_R8gTVe0iaA1FH0M9VvyMbeoVlcvsdrFYO5IOR98aqeCks",
+                  link: "/programs"
                 },
                 {
-                  title: "Brain Gym",
-                  desc: "Cognitive enhancement exercises designed to improve focus, memory, and coordination.",
-                  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuD-KjGhIH5UWuoRzqykSXECuHJmSwiEhAg1Pq887ETL2CeXteE6zGQ2FmtE2TIQwE4pwpg9hWAqDpwaFIBU9FdWSb3QOh4rF1hEW_oweHQLZTbFxf1vSuiJPxoKbU5xfLxI5asllsPal1BMqRbe9nECVYcLxXos4YjvUhKB2d-UgwyY7UAiWyT6rW0J_r4gERaSLMKrDRi2joKGeEYPHLiYYfL6csQ10V89jKjrqKsl8Q4rE5h7zq3eFhgfRanDOaonuHsG9Q3Amu0"
+                   title: "Brain Gym",
+                   desc: "Cognitive enhancement exercises designed to improve focus, memory, and coordination.",
+                   img: "https://lh3.googleusercontent.com/aida-public/AB6AXuD-KjGhIH5UWuoRzqykSXECuHJmSwiEhAg1Pq887ETL2CeXteE6zGQ2FmtE2TIQwE4pwpg9hWAqDpwaFIBU9FdWSb3QOh4rF1hEW_oweHQLZTbFxf1vSuiJPxoKbU5xfLxI5asllsPal1BMqRbe9nECVYcLxXos4YjvUhKB2d-UgwyY7UAiWyT6rW0J_r4gERaSLMKrDRi2joKGeEYPHLiYYfL6csQ10V89jKjrqKsl8Q4rE5h7zq3eFhgfRanDOaonuHsG9Q3Amu0",
+                   link: "/programs"
                 },
                 {
-                  title: "Vedic Maths",
-                  desc: "Ancient speed math techniques for solving complex problems with high accuracy and speed.",
-                  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuD9c0zn9HjZO8j8qoRm3yqdDDmrkV5RGqYcp01fHh5-lEbey_uFdVmnceNDbSu91Q6J8N86hpnq1fohRhAkEJOYxuambigsDjfRS5P50w8fXsQXYI_7LltFP1pRdwnWyiVYTKOvLkpV1vSRWw2nj0qRI-FTVhCwI879qqV2xzG1DathRr4ZYppLEAKML_qyEAb5kRrsOBDVz8PLFkgnw3PdzN_sHycV6m2K0q_SE3_LOErGva_Fz24W9x1P4s4U2qUy0gXZm2elxi8"
+                   title: "Vedic Maths",
+                   desc: "Ancient speed math techniques for solving complex problems with high accuracy and speed.",
+                   img: "https://lh3.googleusercontent.com/aida-public/AB6AXuD9c0zn9HjZO8j8qoRm3yqdDDmrkV5RGqYcp01fHh5-lEbey_uFdVmnceNDbSu91Q6J8N86hpnq1fohRhAkEJOYxuambigsDjfRS5P50w8fXsQXYI_7LltFP1pRdwnWyiVYTKOvLkpV1vSRWw2nj0qRI-FTVhCwI879qqV2xzG1DathRr4ZYppLEAKML_qyEAb5kRrsOBDVz8PLFkgnw3PdzN_sHycV6m2K0q_SE3_LOErGva_Fz24W9x1P4s4U2qUy0gXZm2elxi8",
+                   link: "/programs"
                 },
                 {
-                  title: "Pre-Abacus",
-                  desc: "Gentle introduction to numbers and visualization for toddlers aged 4 to 6 years.",
-                  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuA8pGSOA7YE4IVngIktlp5rjhrt7XPSh2zZ6GtLBmkn2xv9057mWdDTVPPLuUqDjIvVmwjXQUMT_kVuP38Vkqh6Rp1AlbFakAaUrijdhtdKzAC1Of90EtBpD2-ealyMghqaNvujnaKoP0tExkJM_arDCuEaCussJased2VrOm8wq5ZJ0f7OmgU5smKtPQ6IDgIWM3tqPBVZr4wzEgDFNmNFgzII0jalKaGhYs8zzoE0Ys5yqm0iwm7xlvbDjSNBuTTLb8W5yfxKTdw"
+                   title: "Pre-Abacus",
+                   desc: "Gentle introduction to numbers and visualization for toddlers aged 4 to 6 years.",
+                   img: "https://lh3.googleusercontent.com/aida-public/AB6AXuA8pGSOA7YE4IVngIktlp5rjhrt7XPSh2zZ6GtLBmkn2xv9057mWdDTVPPLuUqDjIvVmwjXQUMT_kVuP38Vkqh6Rp1AlbFakAaUrijdhtdKzAC1Of90EtBpD2-ealyMghqaNvujnaKoP0tExkJM_arDCuEaCussJased2VrOm8wq5ZJ0f7OmgU5smKtPQ6IDgIWM3tqPBVZr4wzEgDFNmNFgzII0jalKaGhYs8zzoE0Ys5yqm0iwm7xlvbDjSNBuTTLb8W5yfxKTdw",
+                   link: "/programs"
                 }
               ].map((prog, idx) => (
                 <FadeIn key={idx} delay={idx * 0.1}>
-                  <div className="group bg-white dark:bg-slate-800 p-2 rounded-2xl border border-transparent hover:border-[#197fe6]/20 transition-all hover:shadow-xl hover:-translate-y-1 h-full">
-                    <div className="aspect-square rounded-xl overflow-hidden mb-6 relative">
-                      <Image
-                        src={prog.img}
-                        alt={prog.title}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  <div className="group bg-slate-50 dark:bg-slate-800/50 p-2 rounded-2xl border border-transparent hover:border-[#197fe6]/20 transition-all hover:shadow-xl">
+                    <div className="aspect-square rounded-xl overflow-hidden mb-6">
+                      <Image 
+                        src={prog.img} 
+                        alt={prog.title} 
+                        width={400} 
+                        height={400} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                       />
                     </div>
                     <div className="px-4 pb-6">
-                      <h4 className="text-xl font-bold mb-2 group-hover:text-[#197fe6] transition-colors">{prog.title}</h4>
-                      <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 leading-relaxed">{prog.desc}</p>
-                      <Link className="text-[#197fe6] font-bold text-sm flex items-center gap-2 group/link" href="/programs">
-                        Explore Program
+                      <h4 className="text-xl font-bold mb-2 group-hover:text-[#197fe6] transition-colors dark:text-white">{prog.title}</h4>
+                      <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 leading-relaxed line-clamp-2">
+                        {prog.desc}
+                      </p>
+                      <Link href={prog.link} className="text-[#197fe6] font-bold text-sm flex items-center gap-2 group/link">
+                        Explore Program 
                         <span className="material-symbols-outlined text-base group-hover/link:translate-x-1 transition-transform">arrow_forward</span>
                       </Link>
                     </div>
@@ -206,87 +205,146 @@ export default function Home() {
               <div className="lg:w-1/2 order-2 lg:order-1">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-4">
-                    <div className="h-64 rounded-2xl overflow-hidden relative">
-                      <Image
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLqYt-nran1bIhAOcvpY9Lfhff-r_ju8lZewK2eE4YFper4KH4ydZ3ERpHfq5R_7-vMt7v7ESHYULelc7Hw3wkyfvS6GYuBj1A-GlvCvRc9ia1jrVoF8XZ2yBLh8WQNLtV-ekd7jOLjSqSAOVS0_M02FlRBw10QpG9K4siij_NIAu4wOGFmR3zPsOa_tnczNHP_GGBMCU0vlvHON5g2rRc2Ak0RVczdVGScRxfkR8h5pXwP5oqekMdfZ3XEMhqZl7DWYk6T0LdpAY"
-                        alt="Student"
-                        fill
-                        className="object-cover"
+                    <div className="h-64 rounded-2xl overflow-hidden shadow-lg">
+                      <Image 
+                        src="/Images/DSC_0037-scaled-1.jpg" 
+                        alt="Student practicing abacus" 
+                        width={400} 
+                        height={500} 
+                        className="w-full h-full object-cover" 
                       />
                     </div>
                     <div className="h-40 bg-[#f59e0b]/10 rounded-2xl p-6 flex flex-col justify-end">
-                      <p className="text-[#f59e0b] font-bold text-2xl">98%</p>
-                      <p className="text-[#0e141b] dark:text-white text-sm font-medium">Retention Rate</p>
+                      <p className="text-[#f59e0b] font-black text-3xl">98%</p>
+                      <p className="text-[#0e141b] dark:text-white text-xs font-bold uppercase tracking-wider">Retention Rate</p>
                     </div>
                   </div>
                   <div className="space-y-4 pt-8">
                     <div className="h-40 bg-[#197fe6]/10 rounded-2xl p-6 flex flex-col justify-end">
-                      <p className="text-[#197fe6] font-bold text-2xl">Expert</p>
-                      <p className="text-[#0e141b] dark:text-white text-sm font-medium">Certified Trainers</p>
+                      <p className="text-[#197fe6] font-black text-3xl">Expert</p>
+                      <p className="text-[#0e141b] dark:text-white text-xs font-bold uppercase tracking-wider">Certified Trainers</p>
                     </div>
-                    <div className="h-64 rounded-2xl overflow-hidden relative">
-                      <Image
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEcsbyTB3YQ4avcEDPiNsQKXIP1J0XQvPa-K08gMSKXiYEMlqcPouMGRf4vaK9LUbuTqQn7wb51ZakB2-4KhugYOuafW_PiFA-MCWWQz15XqBGI6P0t-0uSKDFzQ910w7sx-iaWiD_dwxgHasR6vYyxwxIWifW6moRBDIgOEMS6pX0VtERFiOXUfYB4Ds6C25QcvzsaDG621EPDND8ZLMzMojAHLz4gdzoF--texRpuPEGEkTlU1mT_76se4UQplQM5FoIHZuUCqQ"
-                        alt="Teacher"
-                        fill
-                        className="object-cover"
+                    <div className="h-64 rounded-2xl overflow-hidden shadow-lg">
+                      <Image 
+                        src="/Images/WhatsApp-Image-2025-06-08-at-10.03.39_0f634c25-r70q3atn2hrk6sl09jh6d3zwf68pahr7jeygaih09s.jpg" 
+                        alt="Teacher explaining math concept" 
+                        width={400} 
+                        height={500} 
+                        className="w-full h-full object-cover" 
                       />
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="lg:w-1/2 order-1 lg:order-2 space-y-8">
-                <h2 className="text-4xl font-black text-[#0e141b] dark:text-white leading-tight">Why Parents Choose <br /><span className="text-[#197fe6]">Ascento Abacus?</span></h2>
-                <div className="space-y-6">
+              <div className="lg:w-1/2 order-1 lg:order-2 space-y-10">
+                <SlideIn direction="right">
+                  <h2 className="text-4xl lg:text-5xl font-black text-[#0e141b] dark:text-white leading-tight tracking-tight">
+                    Why Parents Choose <br/><span className="text-[#197fe6]">Ascento Abacus?</span>
+                  </h2>
+                </SlideIn>
+                <div className="space-y-8">
                   {[
-                    { icon: "psychology", title: "Whole Brain Development", desc: "Our syllabus stimulates both left (logical) and right (creative) brain hemispheres simultaneously.", color: "bg-[#197fe6]/10 text-[#197fe6]" },
-                    { icon: "emoji_events", title: "Globally Recognized", desc: "Certification that is respected worldwide, giving your child a competitive edge in global exams.", color: "bg-[#f59e0b]/10 text-[#f59e0b]" },
-                    { icon: "diversity_3", title: "Small Batch Sizes", desc: "Personalized attention for every child ensures steady progress and concept clarity.", color: "bg-green-500/10 text-green-500" }
-                  ].map((feature, idx) => (
+                    {
+                      icon: "psychology",
+                      title: "Whole Brain Development",
+                      desc: "Our syllabus stimulates both left (logical) and right (creative) brain hemispheres simultaneously.",
+                      color: "text-[#197fe6] bg-[#197fe6]/10"
+                    },
+                    {
+                      icon: "emoji_events",
+                      title: "Globally Recognized",
+                      desc: "Certification that is respected worldwide, giving your child a competitive edge in global exams.",
+                      color: "text-[#f59e0b] bg-[#f59e0b]/10"
+                    },
+                    {
+                      icon: "diversity_3",
+                      title: "Small Batch Sizes",
+                      desc: "Personalized attention for every child ensures steady progress and concept clarity.",
+                      color: "text-emerald-600 bg-emerald-50"
+                    }
+                  ].map((feat, idx) => (
                     <FadeIn key={idx} delay={idx * 0.1}>
-                      <div className="flex gap-4">
-                        <div className={`shrink-0 size-12 ${feature.color} rounded-xl flex items-center justify-center`}>
-                          <span className="material-symbols-outlined">{feature.icon}</span>
+                      <div className="flex gap-5 group">
+                        <div className={`shrink-0 size-14 ${feat.color} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110`}>
+                          <span className="material-symbols-outlined text-2xl">{feat.icon}</span>
                         </div>
                         <div>
-                          <h4 className="text-lg font-bold mb-1">{feature.title}</h4>
-                          <p className="text-slate-500 dark:text-slate-400">{feature.desc}</p>
+                          <h4 className="text-xl font-bold mb-1 dark:text-white">{feat.title}</h4>
+                          <p className="text-slate-500 dark:text-slate-400 leading-relaxed">{feat.desc}</p>
                         </div>
                       </div>
                     </FadeIn>
                   ))}
                 </div>
-                <Link href="/about" className="bg-[#0e141b] dark:bg-slate-700 text-white px-8 py-4 rounded-xl text-base font-bold transition-all hover:bg-slate-800 inline-flex items-center gap-2">
-                  Learn More About Us
+                <Link href="/contact" className="inline-flex bg-[#0e141b] dark:bg-slate-700 text-white px-8 py-4 rounded-xl text-base font-bold transition-all hover:bg-[#197fe6] hover:shadow-xl hover:shadow-[#197fe6]/20 items-center gap-2 group">
+                  Enroll Your Child Today
+                  <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* CTA Banner */}
-        <section className="py-16">
+        {/* Gallery Section */}
+        <section className="py-24 bg-[#f8fafc] dark:bg-[#020617]/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-[#197fe6] rounded-[2rem] p-8 lg:p-16 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8">
-              {/* Abstract Background Pattern */}
-              <div className="absolute inset-0 opacity-10 pointer-events-none">
-                <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-                  <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white"></path>
-                </svg>
-              </div>
-              <div className="relative z-10 lg:w-2/3">
-                <h2 className="text-3xl lg:text-5xl font-black text-white mb-6">Start Your Entrepreneurial Journey Today</h2>
-                <p className="text-blue-100 text-lg opacity-90 max-w-xl">
-                  Join our network of 50+ successful centers. We provide end-to-end support, training, and marketing materials to help you succeed.
-                </p>
-              </div>
-              <div className="relative z-10 flex flex-col gap-4 w-full lg:w-auto">
-                <Link href="/franchise" className="bg-white text-[#197fe6] px-10 py-5 rounded-2xl text-lg font-bold transition-transform hover:scale-105 shadow-xl text-center">
-                  Become a Franchisee
-                </Link>
-                <p className="text-white/80 text-center text-sm">Low Investment • High ROI • Dedicated Support</p>
-              </div>
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-5xl font-black text-[#0e141b] dark:text-white mb-4">Our Learning <span className="text-[#197fe6]">Environment</span></h2>
+              <p className="text-slate-500 max-w-2xl mx-auto italic font-medium">Glimpses of our vibrant classrooms and the focused journey of our students.</p>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                { src: "/Images/WhatsApp-Image-2025-06-08-at-10.03.37_cfe7f04f.jpg", alt: "Students learning abacus", span: "md:col-span-1" },
+                { src: "/Images/WhatsApp-Image-2025-06-08-at-10.03.37_e3ac77d8.jpg", alt: "Abacus training session", span: "md:col-span-1" },
+                { src: "/Images/WhatsApp-Image-2025-06-08-at-10.03.38_091c0f31.jpg", alt: "Advanced abacus student", span: "md:col-span-1" },
+                { src: "/Images/WhatsApp-Image-2025-06-08-at-10.03.39_0f634c25-r70q3atn2hrk6sl09jh6d3zwf68pahr7jeygaih09s.jpg", alt: "Classroom activities", span: "md:col-span-2" },
+                { src: "/Images/IMG_20190930_102619.jpg", alt: "Award winning students", span: "md:col-span-1" }
+              ].map((img, idx) => (
+                <FadeIn key={idx} delay={idx * 0.1}>
+                  <div className={`group relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 ${img.span}`}>
+                    <Image 
+                      src={img.src} 
+                      alt={img.alt} 
+                      width={800} 
+                      height={600} 
+                      className="w-full h-80 object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-8">
+                      <p className="text-white font-bold text-lg">{img.alt}</p>
+                    </div>
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Banner Section */}
+        <section className="py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <ScaleIn>
+              <div className="bg-[#197fe6] rounded-[2.5rem] p-8 lg:p-20 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-12 shadow-2xl shadow-[#197fe6]/30">
+                {/* Abstract Background Pattern */}
+                <div className="absolute inset-0 opacity-10 pointer-events-none">
+                  <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                    <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white"></path>
+                  </svg>
+                </div>
+                <div className="relative z-10 lg:w-3/5 text-center lg:text-left">
+                  <h2 className="text-3xl lg:text-5xl font-black text-white mb-6 leading-tight">Start Your Entrepreneurial Journey Today</h2>
+                  <p className="text-white/80 text-lg max-w-xl">
+                    Join our network of 50+ successful centers. We provide end-to-end support, training, and marketing materials to help you succeed.
+                  </p>
+                </div>
+                <div className="relative z-10 flex flex-col gap-4 w-full lg:w-auto items-center">
+                  <Link href="/franchise" className="bg-white text-[#197fe6] px-10 py-5 rounded-2xl text-xl font-bold transition-all hover:scale-105 hover:shadow-2xl shadow-xl whitespace-nowrap">
+                    Become a Franchisee
+                  </Link>
+                  <p className="text-white/60 text-sm font-medium tracking-wide">Low Investment • High ROI • Dedicated Support</p>
+                </div>
+              </div>
+            </ScaleIn>
           </div>
         </section>
       </main>

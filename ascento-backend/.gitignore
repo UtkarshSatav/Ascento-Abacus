@@ -1,9 +1,0 @@
-node_modules
-node_modules/
-logs
-logs/
-.env
-.env.*
-*.log
-.DS_Store
-test.json

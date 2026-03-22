@@ -7,6 +7,7 @@ interface AnimatedSectionProps {
     children: ReactNode;
     className?: string;
     delay?: number;
+    direction?: "left" | "right" | "up" | "down";
 }
 
 // Fade In Animation
@@ -27,16 +28,25 @@ export function FadeIn({ children, className = "", delay = 0 }: AnimatedSectionP
     );
 }
 
-// Slide In from Left
-export function SlideIn({ children, className = "", delay = 0 }: AnimatedSectionProps) {
+// Slide In Animation
+export function SlideIn({ children, className = "", delay = 0, direction = "left" }: AnimatedSectionProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+    const directionMap = {
+        left: { x: -100, y: 0 },
+        right: { x: 100, y: 0 },
+        up: { x: 0, y: 100 },
+        down: { x: 0, y: -100 }
+    };
+
+    const initial = { opacity: 0, ...directionMap[direction] };
 
     return (
         <motion.div
             ref={ref}
-            initial={{ opacity: 0, x: -100 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -100 }}
+            initial={initial}
+            animate={isInView ? { opacity: 1, x: 0, y: 0 } : initial}
             transition={{ duration: 0.7, delay, ease: "easeOut" }}
             className={className}
         >

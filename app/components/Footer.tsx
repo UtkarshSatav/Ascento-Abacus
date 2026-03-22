@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
     return (
@@ -7,10 +8,14 @@ export default function Footer() {
                 <div className="grid lg:grid-cols-4 gap-12 mb-16">
                     <div className="col-span-1 lg:col-span-1 space-y-6">
                         <div className="flex items-center gap-3">
-                            <div className="text-[#197fe6] size-8">
-                                <svg className="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                    <path clipRule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fillRule="evenodd"></path>
-                                </svg>
+                            <div className="relative size-10 flex items-center justify-center">
+                                <Image 
+                                    src="/Acento-Logo.jpg" 
+                                    alt="Ascento Abacus Logo" 
+                                    width={40} 
+                                    height={40}
+                                    className="object-contain rounded-lg"
+                                />
                             </div>
                             <h2 className="text-xl font-bold tracking-tight text-[#0e141b] dark:text-white">Ascento Abacus</h2>
                         </div>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { 
   User, 
   LogOut, 
@@ -11,30 +12,34 @@ import {
   ChevronDown,
   Sparkles
 } from "lucide-react";
+import { auth, db } from "../../lib/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
-/**
- * DEMO NAVBAR
- * Uses localStorage to simulate auth state for the client demo.
- */
 export default function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [user, setUser] = useState<any>(null);
+    const [userData, setUserData] = useState<any>(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
-        // Simple check for demo logic
-        const checkAuth = () => {
-            setIsLoggedIn(localStorage.getItem("demo_admin") === "true");
-        };
-        checkAuth();
-        // Listen for changes (in case of login/logout)
-        window.addEventListener('storage', checkAuth);
-        return () => window.removeEventListener('storage', checkAuth);
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                setUser(firebaseUser);
+                const userDoc = await getDoc(doc(db, "Users", firebaseUser.uid));
+                if (userDoc.exists()) {
+                    setUserData(userDoc.data());
+                }
+            } else {
+                setUser(null);
+                setUserData(null);
+            }
+        });
+        return () => unsubscribe();
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem("demo_admin");
-        setIsLoggedIn(false);
+    const handleLogout = async () => {
+        await signOut(auth);
         window.location.href = "/";
     };
 
@@ -42,19 +47,21 @@ export default function Navbar() {
         <header className="sticky top-0 z-[100] bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 transition-all duration-500">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-                    {/* Logo */}
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="text-[#197fe6] size-10 flex items-center justify-center transition-transform group-hover:scale-110">
-                            <svg className="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                <path clipRule="evenodd" d="M24 0.757355L47.2426 24L24 47.2426L0.757355 24L24 0.757355ZM21 35.7574V12.2426L9.24264 24L21 35.7574Z" fill="currentColor" fillRule="evenodd"></path>
-                            </svg>
+                        <div className="relative size-12 flex items-center justify-center transition-transform group-hover:scale-110">
+                            <Image 
+                                src="/Acento-Logo.jpg" 
+                                alt="Ascento Abacus Logo" 
+                                width={48} 
+                                height={48}
+                                className="object-contain rounded-lg"
+                            />
                         </div>
                         <h1 className="text-xl font-black tracking-tight text-[#0e141b] dark:text-white bg-clip-text">
                             Ascento <span className="text-[#197fe6]">Abacus</span>
                         </h1>
                     </Link>
 
-                    {/* Desktop Nav */}
                     <nav className="hidden md:flex items-center gap-10">
                         {['Home', 'Programs', 'Franchise', 'Contact'].map((item) => (
                             <Link 
@@ -68,17 +75,16 @@ export default function Navbar() {
                         ))}
                     </nav>
 
-                    {/* Auth Area */}
                     <div className="flex items-center gap-6">
-                        {isLoggedIn ? (
+                        {user ? (
                             <div className="relative">
                                 <button 
                                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                                     className="flex items-center gap-3 pl-4 py-1.5 pr-1.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:bg-slate-100 transition-all font-bold text-sm text-slate-700 dark:text-slate-300"
                                 >
-                                    <span className="hidden sm:inline">Portal Admin</span>
+                                    <span className="hidden sm:inline italic">{userData?.Name || user.email?.split('@')[0]}</span>
                                     <div className="size-8 rounded-xl bg-[#197fe6] flex items-center justify-center text-white text-xs font-black shadow-lg shadow-[#197fe6]/20">
-                                        A
+                                        {userData?.Name?.[0] || 'U'}
                                     </div>
                                     <ChevronDown size={14} className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                                 </button>
@@ -86,26 +92,28 @@ export default function Navbar() {
                                 {isDropdownOpen && (
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)}></div>
-                                        <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl p-3 z-20 overflow-hidden animate-in fade-in slide-in-from-top-5 duration-300">
+                                        <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl p-3 z-20 overflow-hidden animate-in fade-in slide-in-from-top-5 duration-300 text-[#0e141b]">
                                             <div className="p-4 bg-slate-50 dark:bg-slate-950/50 rounded-2xl mb-2">
-                                                <p className="text-xs font-black text-[#197fe6] uppercase tracking-widest mb-1 italic">Role: Master Admin</p>
-                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">admin@demo.com</p>
+                                                <p className="text-xs font-black text-[#197fe6] uppercase tracking-widest mb-1 italic">Level: {userData?.Role || 'User'}</p>
+                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.email}</p>
                                             </div>
                                             
                                             <div className="space-y-1">
-                                                <Link 
-                                                    href="/admin" 
-                                                    onClick={() => setIsDropdownOpen(false)}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#197fe6] hover:bg-[#197fe6]/5 rounded-xl transition-all ring-1 ring-[#197fe6]/20 bg-[#197fe6]/5"
-                                                >
-                                                    <LayoutDashboard size={18} /> Admin Business Console
-                                                </Link>
+                                                {userData?.Role?.trim().toLowerCase() === 'admin' && (
+                                                    <Link 
+                                                        href="/admin" 
+                                                        onClick={() => setIsDropdownOpen(false)}
+                                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#197fe6] hover:bg-[#197fe6]/5 rounded-xl transition-all ring-1 ring-[#197fe6]/20 bg-[#197fe6]/5 uppercase tracking-widest text-[10px]"
+                                                    >
+                                                        <LayoutDashboard size={18} /> Admin Dashboard
+                                                    </Link>
+                                                )}
                                                 
                                                 <button 
                                                     onClick={handleLogout}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all"
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all uppercase tracking-widest text-[10px]"
                                                 >
-                                                    <LogOut size={18} /> Logout
+                                                    <LogOut size={18} /> Logout Session
                                                 </button>
                                             </div>
                                         </div>
@@ -116,8 +124,7 @@ export default function Navbar() {
                             <Link href="/login" className="flex items-center gap-2 group">
                                 <span className="hidden sm:inline text-sm font-black uppercase tracking-widest text-slate-500 group-hover:text-[#197fe6] transition-colors">Login</span>
                                 <div className="bg-[#197fe6] hover:bg-[#197fe6]/90 text-white px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-[#197fe6]/20 hover:scale-105 active:scale-95 flex items-center gap-2">
-                                    <Sparkles size={14} />
-                                    Get Started
+                                    Sign In
                                 </div>
                             </Link>
                         )}
@@ -132,7 +139,6 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* Mobile Menu */}
             {isMobileMenuOpen && (
                 <div className="md:hidden bg-white dark:bg-[#020617] border-b border-slate-200 dark:border-slate-800 p-6 animate-in slide-in-from-top-10 duration-500">
                     <nav className="flex flex-col gap-4">
@@ -147,9 +153,11 @@ export default function Navbar() {
                             </Link>
                         ))}
                         <hr className="my-4 border-slate-100 dark:border-slate-800" />
-                        {isLoggedIn ? (
+                        {user ? (
                             <>
-                                <Link className="text-lg font-black uppercase tracking-widest text-[#197fe6]" href="/admin" onClick={() => setIsMobileMenuOpen(false)}>Open Admin Console</Link>
+                                {userData?.Role?.trim().toLowerCase() === 'admin' && (
+                                    <Link className="text-lg font-black uppercase tracking-widest text-[#197fe6]" href="/admin" onClick={() => setIsMobileMenuOpen(false)}>Open Admin Console</Link>
+                                )}
                                 <button onClick={handleLogout} className="text-lg font-black uppercase tracking-widest text-red-500 text-left">Logout</button>
                             </>
                         ) : (

@@ -2,44 +2,57 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { auth, db } from "../../lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
-/**
- * DEMO AUTH GUARD
- * Bypasses all Firebase checks and uses the demo_admin flag.
- */
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
-        const isDemoAdmin = localStorage.getItem("demo_admin") === "true";
-        const isAdminPath = pathname.startsWith("/admin");
-        const isAuthPath = ["/login", "/register"].includes(pathname);
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            const isAdminPath = pathname.startsWith("/admin");
+            const isAuthPath = ["/login", "/register"].includes(pathname);
 
-        if (isDemoAdmin) {
-            // If logged in as demo admin, don't allow auth pages
-            if (isAuthPath) {
-                router.push("/admin");
-                return;
-            }
-        } else {
-            // If NOT logged in, don't allow admin pages
-            if (isAdminPath) {
-                router.push("/login");
-                return;
-            }
-        }
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "Users", user.uid));
+                    const role = userDoc.exists() ? userDoc.data().Role?.trim().toLowerCase() : "user";
 
-        setLoading(false);
+                    if (isAuthPath) {
+                        router.push(role === "admin" ? "/admin" : "/profile");
+                        return;
+                    }
+
+                    if (isAdminPath && role !== "admin") {
+                        router.push("/profile");
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Auth Guard Failure:", err);
+                    if (isAdminPath) router.push("/login");
+                }
+            } else {
+                if (isAdminPath) {
+                    router.push("/login");
+                    return;
+                }
+            }
+
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
     }, [pathname, router]);
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-[#197fe6] border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Demo Shield Active</p>
+            <div className="min-h-screen flex items-center justify-center bg-white text-[#0e141b]">
+                <div className="flex flex-col items-center gap-6">
+                    <div className="w-16 h-16 border-4 border-[#197fe6] border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px] italic">Securing Tunnel Connection</p>
                 </div>
             </div>
         );

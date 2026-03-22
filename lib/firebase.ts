@@ -1,31 +1,30 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCExbjxP3fQPjmBGTv-_hDgwEcTq-9CCgs",
-    authDomain: "ascento-abacus-db.firebaseapp.com",
-    projectId: "ascento-abacus-db",
-    storageBucket: "ascento-abacus-db.firebasestorage.app",
-    messagingSenderId: "84010772893",
-    appId: "1:84010772893:web:d4dfc1ad702a98d060a774",
-    measurementId: "G-WCM0KWVJE7"
+  apiKey: "AIzaSyAZjKKLfWUyI2NHnr0IcDz_pYrKe6SIov0",
+  authDomain: "acento-abacus.firebaseapp.com",
+  databaseURL: "https://acento-abacus-default-rtdb.firebaseio.com",
+  projectId: "acento-abacus",
+  storageBucket: "acento-abacus.firebasestorage.app",
+  messagingSenderId: "1005535318576",
+  appId: "1:1005535318576:web:3d1ff136c5d54e268a53f5",
+  measurementId: "G-5QPYKNZ9E4"
 };
 
-// Initialize Firebase
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Initialize Firebase (SSR Safe)
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
 
-// Analytics (only on client-side)
-let analytics;
+// Initialize Analytics selectively
 if (typeof window !== "undefined") {
-    isSupported().then((supported) => {
-        if (supported) {
-            analytics = getAnalytics(app);
-        }
+    isSupported().then(yes => {
+        if (yes) getAnalytics(app);
     });
 }
 
-export { app, db, auth, analytics };
+export { app, auth, db, googleProvider };

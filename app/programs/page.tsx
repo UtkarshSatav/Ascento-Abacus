@@ -2,32 +2,57 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { auth, db } from "../../lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { FadeIn, SlideIn, ScaleIn } from "../components/AnimatedSection";
 
 export default function ProgramsPage() {
-    const handleEnroll = async (courseName: string) => {
-        try {
-            const response = await fetch('http://localhost:5001/api/enrollments', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userName: 'Sample Student', // In reality, fetch from auth
-                    userEmail: 'student@example.com',
-                    courseId: courseName.toLowerCase().replace(/\s+/g, '-'),
-                    courseName: courseName
-                })
-            });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedCourse, setSelectedCourse] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
 
-            if (response.ok) {
-                alert(`Successfully enrolled in ${courseName}!`);
-            } else {
-                alert('Enrollment failed. Please try again.');
-            }
+    // Form State
+    const [formData, setFormData] = useState({
+        parentName: "",
+        childName: "",
+        childAge: "",
+        phone: "",
+        email: ""
+    });
+
+    const handleEnroll = (courseName: string) => {
+        setSelectedCourse(courseName);
+        setIsModalOpen(true);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        try {
+            await addDoc(collection(db, "Enquiries"), {
+                ...formData,
+                course: selectedCourse,
+                status: "Pending",
+                createdAt: serverTimestamp(),
+                source: "Website Enrollment"
+            });
+            setShowSuccess(true);
+            setTimeout(() => {
+                setIsModalOpen(false);
+                setShowSuccess(false);
+                setFormData({ parentName: "", childName: "", childAge: "", phone: "", email: "" });
+            }, 3000);
         } catch (error) {
-            console.error('Error enrolling:', error);
-            alert('An error occurred during enrollment.');
+            console.error("Enrollment Error:", error);
+            alert("Failed to submit enrollment. Please try again.");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -70,21 +95,21 @@ export default function ProgramsPage() {
                             title: "Advanced Abacus",
                             age: "Ages 6-14",
                             icon: "calculate",
-                            img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDhxpCQcxOWPPJOiBRJdGH9yhTImuJ7tUqXHO5p_3Xzd5qTDrNUBv6yN-_gV39OdDSv9CyCOvBVHt6aI4_kJQW-v_3S9WG7CAqw8V4svqejfeNzPEJr7HBt5h6E6dFH0rZZyaTPT0w-Vm3lvSdj0HKJBK6_DTS7Cr3H2tgW6XAQdrVxrY8bscRDRYsRrtvTtyLmzR6H4WQ_f04l2F_1l7cRsZBwDgHHB6Y4w63JIwcvoLxb1qTDTjn0cfdbt-Cu9DTxzmhJ9ntO3VU",
+                            img: "/Images/WhatsApp-Image-2025-06-08-at-10.03.38_091c0f31.jpg",
                             points: ["Mastery of the 'Two-Hand, Four-Finger' technique", "Enhanced visualization and photographic memory", "Lightning-fast mental calculation speed"]
                         },
                         {
                             title: "Brain Gym",
                             age: "Ages 5-15",
                             icon: "psychology",
-                            img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAH2n5Ks-2fE2iG1PiG_zrn23ag-IkOm2jRMFBryZa_wxOmRaauMHrh5O4oTWsrNeznraqGhYQEKOqZhXtzh5TtPwTDZuCvSHAjp8qMlsV62pZ4q_V3_RkD8p-iLRCNPxmXQoS5p-y3C0QF9m4n_kneCy3SIl-aa02eIlS2yrm32NZNTJ-VduJp0BXhfouj-nLJR04wsUZrz-RF3fL0rRtg8RIz6DOVAuOkVu_0KI2j1dOQUXJVZl71UsTwamnBiBawjU0ZVTXNdqI",
+                            img: "/Images/WhatsApp-Image-2025-06-08-at-10.03.37_e3ac77d8.jpg",
                             points: ["Kinesiology-based movement exercises", "Improves left and right brain coordination", "Reduces stress and boosts concentration"]
                         },
                         {
                             title: "Pre-Abacus",
                             age: "Ages 4-6",
                             icon: "child_care",
-                            img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBvKNCOWF-Gt31D8u2p4NMXmWPyq2t_w6YA7u6oZevxo3qO_aLwn6QJC5TAA5JjQSn8IudN9SpmN2kLGyKOFzog7dIlbMrOwK9XGKuUfzWVSJycAUpgHzUTNLJ4jJx1BfS10NFFxJ-1ftLxjTrmcsKNki9kcsexr1sXgM8Vv0uz4QImpWx8lXGTBlckTboan728pEreehWdWBvxmHNEVUqsTulLvUdLECOWGtBBzGh-GfTY-a0-CnYaz3MqKSJh-cGEEcGPIwKV6Rg",
+                            img: "/Images/WhatsApp-Image-2025-06-08-at-10.03.37_cfe7f04f.jpg",
                             points: ["Early numerical concepts through play", "Introduction to bead movements", "Fine motor skill development"]
                         },
                         {
@@ -196,6 +221,121 @@ export default function ProgramsPage() {
             </section>
 
             <Footer />
+
+            <AnimatePresence>
+                {isModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsModalOpen(false)}
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700"
+                        >
+                            {showSuccess ? (
+                                <div className="p-12 text-center space-y-6">
+                                    <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <span className="material-icons text-4xl">check_circle</span>
+                                    </div>
+                                    <h3 className="text-3xl font-black text-slate-900 dark:text-white italic uppercase tracking-tight">Application Received</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 font-medium">
+                                        Our advisors will contact you shortly to finalize the enrollment for <span className="text-[#197fe6] font-bold">{selectedCourse}</span>.
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="bg-[#197fe6] p-8 text-white relative">
+                                        <button 
+                                            onClick={() => setIsModalOpen(false)}
+                                            className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"
+                                        >
+                                            <span className="material-icons">close</span>
+                                        </button>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70">Enrollment Portal</span>
+                                        <h3 className="text-2xl font-black italic tracking-tight mt-1">Enroll in {selectedCourse}</h3>
+                                    </div>
+
+                                    <form onSubmit={handleSubmit} className="p-8 space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Parent's Name</label>
+                                                <input 
+                                                    required
+                                                    type="text"
+                                                    value={formData.parentName}
+                                                    onChange={(e) => setFormData({...formData, parentName: e.target.value})}
+                                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-[#197fe6] outline-none transition-all"
+                                                    placeholder="John Doe"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Child's Name</label>
+                                                <input 
+                                                    required
+                                                    type="text"
+                                                    value={formData.childName}
+                                                    onChange={(e) => setFormData({...formData, childName: e.target.value})}
+                                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-[#197fe6] outline-none transition-all"
+                                                    placeholder="Alex"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div className="space-y-1.5 col-span-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Age</label>
+                                                <input 
+                                                    required
+                                                    type="number"
+                                                    value={formData.childAge}
+                                                    onChange={(e) => setFormData({...formData, childAge: e.target.value})}
+                                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-[#197fe6] outline-none transition-all"
+                                                    placeholder="8"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5 col-span-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Phone Number</label>
+                                                <input 
+                                                    required
+                                                    type="tel"
+                                                    value={formData.phone}
+                                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-[#197fe6] outline-none transition-all"
+                                                    placeholder="+91 98765 43210"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Email Terminal (Optional)</label>
+                                            <input 
+                                                type="email"
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-[#197fe6] outline-none transition-all"
+                                                placeholder="john@example.com"
+                                            />
+                                        </div>
+
+                                        <button 
+                                            disabled={isSubmitting}
+                                            className="w-full bg-[#197fe6] text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs mt-4 shadow-lg shadow-[#197fe6]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                                        >
+                                            {isSubmitting ? "Processing Signal..." : "Transmit Enrollment"}
+                                        </button>
+                                    </form>
+                                </>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
