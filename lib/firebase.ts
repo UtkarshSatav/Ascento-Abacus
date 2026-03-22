@@ -5,14 +5,18 @@ import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyAZjKKLfWUyI2NHnr0IcDz_pYrKe6SIov0",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "acento-abacus.firebaseapp.com",
-  databaseURL: `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "acento-abacus"}-default-rtdb.firebaseio.com`,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "acento-abacus",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "acento-abacus.firebasestorage.app",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "ascento-abacus.firebaseapp.com",
+  databaseURL: `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "ascento-abacus"}-default-rtdb.firebaseio.com`,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "ascento-abacus",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "ascento-abacus.firebasestorage.app",
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1005535318576",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:1005535318576:web:3d1ff136c5d54e268a53f5",
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-5QPYKNZ9E4"
 };
+
+if (typeof window !== "undefined") {
+  console.log("🔥 Initializing Firebase with project:", firebaseConfig.projectId);
+}
 
 // Initialize Firebase (SSR Safe)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
