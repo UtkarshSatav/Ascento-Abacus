@@ -9,7 +9,7 @@ import {
 // --- AI INSIGHTS ---
 export function AIInsights() {
   const insights = [
-    { icon: "🧮", title: "Weak in Mathematics", body: "Your UT2 score dropped to 34/50. Focus on Algebra & Quadratic Equations this week.", color: "#6366f1" },
+    { icon: "🧮", title: "Weak in Mathematics", body: "Your UT2 score dropped to 34/50. Focus on Algebra & Quadratic Equations this week.", color: "#197fe6" },
     { icon: "📈", title: "Predicted Final Grade: A−", body: "Based on current trend, you're on track for 78–82% overall. Improve attendance to boost.", color: "#10b981" },
     { icon: "⚠️", title: "Attendance Risk", body: "Your attendance is 82%. Minimum 85% required. Missing 1 more day may affect eligibility.", color: "#f59e0b" },
   ];
@@ -18,7 +18,7 @@ export function AIInsights() {
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <span style={{ fontSize: 18 }}>🤖</span>
         <span style={{ fontSize: 15, fontWeight: 700, color: "#a5b4fc" }}>AI Study Insights</span>
-        <span style={{ marginLeft: "auto", background: "#6366f122", color: "#818cf8", border: "1px solid #6366f133", borderRadius: 20, padding: "2px 10px", fontSize: 10, fontWeight: 600 }}>POWERED BY AI</span>
+        <span style={{ marginLeft: "auto", background: "#197fe622", color: "#60a5fa", border: "1px solid #197fe633", borderRadius: 20, padding: "2px 10px", fontSize: 10, fontWeight: 600 }}>POWERED BY AI</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {insights.map((ins, i) => (
@@ -84,14 +84,14 @@ export function PageDashboard() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
         <Card>
           <SectionTitle title="Academic Progress" sub="Monthly performance trend" />
-          <LineChartMini data={[62,68,71,65,74,78,76,80,84]} color="#6366f1" />
+          <LineChartMini data={[62,68,71,65,74,78,76,80,84]} color="#197fe6" />
           <div style={{ display:"flex", justifyContent:"space-between", marginTop:4 }}>
             {perfLabels.map((l,i) => <span key={i} style={{ fontSize:9, color:"#6b7280" }}>{l}</span>)}
           </div>
         </Card>
         <Card>
           <SectionTitle title="Subject-wise Marks (UT2)" sub="Out of 50" />
-          <BarChartMini data={subMarks} labels={subLabels} color="#8b5cf6" />
+          <BarChartMini data={subMarks} labels={subLabels} color="#1d4ed8" />
         </Card>
       </div>
 
@@ -103,7 +103,7 @@ export function PageDashboard() {
             {today.map((cls, i) => (
               <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", padding: "10px 12px", background: "#0f172a", borderRadius: 10, border: "1px solid #1f2937" }}>
                 <div style={{ minWidth: 44, fontSize: 11, color: "#6b7280", fontWeight: 600 }}>{cls.time}</div>
-                <div style={{ width: 3, height: 32, background: (subjectColors as any)[cls.subj] || "#6366f1", borderRadius: 2 }} />
+                <div style={{ width: 3, height: 32, background: (subjectColors as any)[cls.subj] || "#197fe6", borderRadius: 2 }} />
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#f3f4f6" }}>{cls.subj}</div>
                   <div style={{ fontSize: 11, color: "#6b7280" }}>{cls.teacher} · {cls.room}</div>
@@ -118,7 +118,7 @@ export function PageDashboard() {
         <SectionTitle title="Recent Notifications" sub="Latest updates from school" />
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {notifications.slice(0,3).map((n,i) => (
-            <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"10px 12px", background: n.read?"#0f172a":"#1e1b4b33", borderRadius:10, border:`1px solid ${n.read?"#1f2937":"#3730a344"}` }}>
+            <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"10px 12px", background: n.read?"#0f172a":"#0c2d4e33", borderRadius:10, border:`1px solid ${n.read?"#1f2937":"#3730a344"}` }}>
               <Badge label={n.type} />
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:13, fontWeight:600, color:"#f3f4f6" }}>{n.title}</div>
@@ -167,7 +167,7 @@ export function PageAcademics() {
         <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
           {subjects.map((s,i)=>(
             <div key={i} style={{ display:"grid",gridTemplateColumns:"80px 1fr 1fr 1fr",gap:12,padding:"12px 14px",background:"#0f172a",borderRadius:12,border:"1px solid #1f2937",alignItems:"center" }}>
-              <span style={{ fontSize:11,color:"#6366f1",fontWeight:700,fontFamily:"monospace" }}>{s.code}</span>
+              <span style={{ fontSize:11,color:"#197fe6",fontWeight:700,fontFamily:"monospace" }}>{s.code}</span>
               <span style={{ fontSize:13,fontWeight:600,color:"#f3f4f6" }}>{s.name}</span>
               <span style={{ fontSize:12,color:"#9ca3af" }}>👩‍🏫 {s.teacher}</span>
               <span style={{ fontSize:11,color:"#6b7280" }}>{s.desc}</span>
@@ -189,7 +189,7 @@ export function PageTimetable() {
     <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10 }}>
         <SectionTitle title="Weekly Timetable" sub="Grade 9 – Section A · 2024–25" />
-        <button style={{ background:"#6366f1",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer" }}>📥 Download PDF</button>
+        <button style={{ background:"#197fe6",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer" }}>📥 Download PDF</button>
       </div>
       <div style={{ overflowX:"auto" }}>
         <table style={{ width:"100%",borderCollapse:"separate",borderSpacing:4 }}>
@@ -197,7 +197,7 @@ export function PageTimetable() {
             <tr>
               <th style={{ padding:"8px 12px",textAlign:"left",fontSize:11,color:"#6b7280",fontWeight:600 }}>Period</th>
               {days.map(d=>(
-                <th key={d} style={{ padding:"8px 12px",textAlign:"center",fontSize:12,fontWeight:700,color:d===currentDay?"#6366f1":"#9ca3af",background:d===currentDay?"#1e1b4b33":"transparent",borderRadius:8 }}>{d}</th>
+                <th key={d} style={{ padding:"8px 12px",textAlign:"center",fontSize:12,fontWeight:700,color:d===currentDay?"#197fe6":"#9ca3af",background:d===currentDay?"#0c2d4e33":"transparent",borderRadius:8 }}>{d}</th>
               ))}
             </tr>
           </thead>
@@ -239,7 +239,7 @@ export function PageExams() {
       <SectionTitle title="Examinations" sub="Schedule, details and admit cards" />
       <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
         {exams.map((e,i)=>(
-          <Card key={i} style={{ cursor:"pointer",transition:"border-color .2s",border:`1px solid ${sel===i?"#6366f1":"#1f2937"}` }}
+          <Card key={i} style={{ cursor:"pointer",transition:"border-color .2s",border:`1px solid ${sel===i?"#197fe6":"#1f2937"}` }}
             onClick={()=>setSel(sel===i?null:i)}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10 }}>
               <div>
@@ -258,7 +258,7 @@ export function PageExams() {
                   📋 Students must bring hall ticket + school ID. No electronic devices allowed. Report 15 min early.
                 </div>
                 {e.status!=="Completed" && (
-                  <button style={{ background:"#6366f1",color:"#fff",border:"none",borderRadius:8,padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer" }}>📥 Download Admit Card</button>
+                  <button style={{ background:"#197fe6",color:"#fff",border:"none",borderRadius:8,padding:"7px 16px",fontSize:12,fontWeight:600,cursor:"pointer" }}>📥 Download Admit Card</button>
                 )}
               </div>
             )}
@@ -355,7 +355,7 @@ export function PageFees() {
                 <td style={{ padding:"10px 12px" }}><Badge label={f.status} /></td>
                 <td style={{ padding:"10px 12px" }}>
                   {f.status==="Pending"
-                    ? <button style={{ background:"#6366f1",color:"#fff",border:"none",borderRadius:6,padding:"5px 12px",fontSize:11,fontWeight:600,cursor:"pointer" }}>Pay Now</button>
+                    ? <button style={{ background:"#197fe6",color:"#fff",border:"none",borderRadius:6,padding:"5px 12px",fontSize:11,fontWeight:600,cursor:"pointer" }}>Pay Now</button>
                     : <button style={{ background:"#1f2937",color:"#9ca3af",border:"none",borderRadius:6,padding:"5px 12px",fontSize:11,cursor:"pointer" }}>📥 Receipt</button>
                   }
                 </td>
@@ -373,7 +373,7 @@ export function PageResults() {
     <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10 }}>
         <SectionTitle title="Results" sub="Unit tests and mid-term performance" />
-        <button style={{ background:"#6366f1",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer" }}>📥 Download Report Card</button>
+        <button style={{ background:"#197fe6",color:"#fff",border:"none",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer" }}>📥 Download Report Card</button>
       </div>
       <Card>
         <table style={{ width:"100%",borderCollapse:"collapse" }}>
@@ -402,7 +402,7 @@ export function PageResults() {
       </Card>
       <Card>
         <SectionTitle title="UT2 Marks Comparison" sub="Your score vs class average" />
-        <BarChartMini data={results.map(r=>r.ut2!)} labels={results.map(r=>r.subject.slice(0,4))} color="#6366f1" />
+        <BarChartMini data={results.map(r=>r.ut2!)} labels={results.map(r=>r.subject.slice(0,4))} color="#197fe6" />
       </Card>
     </div>
   );
@@ -410,7 +410,7 @@ export function PageResults() {
 
 export function PageTeachers() {
   const initials = (name: string) => name.split(" ").map(w=>w[0]).join("").slice(0,2);
-  const colors = ["#6366f1","#10b981","#f59e0b","#ec4899","#14b8a6","#8b5cf6"];
+  const colors = ["#197fe6","#10b981","#f59e0b","#ec4899","#14b8a6","#1d4ed8"];
   return (
     <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
       <SectionTitle title="My Teachers" sub="Contact and subject information" />
@@ -446,7 +446,7 @@ export function PageNotifications() {
       <div style={{ display:"flex",gap:8 }}>
         {types.map(t=>(
           <button key={t} onClick={()=>setFilter(t)}
-            style={{ background:filter===t?"#6366f1":"#1f2937",color:filter===t?"#fff":"#9ca3af",border:`1px solid ${filter===t?"#6366f1":"#374151"}`,borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:600,cursor:"pointer" }}>
+            style={{ background:filter===t?"#197fe6":"#1f2937",color:filter===t?"#fff":"#9ca3af",border:`1px solid ${filter===t?"#197fe6":"#374151"}`,borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:600,cursor:"pointer" }}>
             {t}
           </button>
         ))}
@@ -464,7 +464,7 @@ export function PageNotifications() {
               </div>
               <div style={{ display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6 }}>
                 <div style={{ fontSize:11,color:"#4b5563",whiteSpace:"nowrap" }}>{n.time}</div>
-                {!n.read && <div style={{ width:8,height:8,borderRadius:"50%",background:"#6366f1" }} />}
+                {!n.read && <div style={{ width:8,height:8,borderRadius:"50%",background:"#197fe6" }} />}
               </div>
             </div>
           </Card>
@@ -494,7 +494,7 @@ export function PageDocuments() {
               </div>
               <div style={{ display:"flex",gap:8 }}>
                 <button style={{ background:"#1f2937",color:"#9ca3af",border:"1px solid #374151",borderRadius:8,padding:"6px 14px",fontSize:12,cursor:"pointer" }}>👁 Preview</button>
-                <button style={{ background:"#6366f1",color:"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer" }}>📥 Download</button>
+                <button style={{ background:"#197fe6",color:"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer" }}>📥 Download</button>
               </div>
             </div>
           </Card>
@@ -516,15 +516,15 @@ export function PageProfile() {
       <SectionTitle title="Profile" sub="Student information and academic history" />
       <div style={{ display:"grid",gridTemplateColumns:"auto 1fr",gap:20 }}>
         <Card style={{ textAlign:"center",padding:"28px 24px",minWidth:160 }}>
-          <div style={{ width:72,height:72,borderRadius:20,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:800,color:"#fff",margin:"0 auto 12px" }}>AM</div>
+          <div style={{ width:72,height:72,borderRadius:20,background:"linear-gradient(135deg,#197fe6,#1d4ed8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:800,color:"#fff",margin:"0 auto 12px" }}>AM</div>
           <div style={{ fontSize:15,fontWeight:700,color:"#f9fafb" }}>{student.name}</div>
-          <div style={{ fontSize:12,color:"#6366f1",marginTop:3,fontWeight:600 }}>{student.id}</div>
+          <div style={{ fontSize:12,color:"#197fe6",marginTop:3,fontWeight:600 }}>{student.id}</div>
           <div style={{ fontSize:11,color:"#6b7280",marginTop:6 }}>{student.class}</div>
           <div style={{ fontSize:11,color:"#6b7280",marginTop:2 }}>Roll No: {student.roll}</div>
         </Card>
         <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:0 }}>
           <Card style={{ borderRadius:"16px 0 0 16px",borderRight:"none" }}>
-            <div style={{ fontSize:12,fontWeight:700,color:"#6366f1",marginBottom:8,textTransform:"uppercase",letterSpacing:1 }}>Personal Details</div>
+            <div style={{ fontSize:12,fontWeight:700,color:"#197fe6",marginBottom:8,textTransform:"uppercase",letterSpacing:1 }}>Personal Details</div>
             <Field label="Date of Birth" value={student.dob} />
             <Field label="Gender" value={student.gender} />
             <Field label="Blood Group" value={student.blood} />
@@ -561,7 +561,7 @@ export function PageSettings() {
         <div style={{ display:"flex",gap:10 }}>
           {["dark","light"].map(t=>(
             <button key={t} onClick={()=>setTheme(t)}
-              style={{ background:theme===t?"#6366f1":"#1f2937",color:theme===t?"#fff":"#9ca3af",border:`1px solid ${theme===t?"#6366f1":"#374151"}`,borderRadius:8,padding:"8px 20px",fontSize:12,fontWeight:600,cursor:"pointer",textTransform:"capitalize" }}>
+              style={{ background:theme===t?"#197fe6":"#1f2937",color:theme===t?"#fff":"#9ca3af",border:`1px solid ${theme===t?"#197fe6":"#374151"}`,borderRadius:8,padding:"8px 20px",fontSize:12,fontWeight:600,cursor:"pointer",textTransform:"capitalize" }}>
               {t==="dark"?"🌙 Dark":"☀️ Light"}
             </button>
           ))}
@@ -577,7 +577,7 @@ export function PageSettings() {
                 style={{ width:"100%",background:"#0f172a",border:"1px solid #374151",borderRadius:8,padding:"9px 12px",color:"#f3f4f6",fontSize:13,outline:"none",boxSizing:"border-box" }} />
             </div>
           ))}
-          <button style={{ background:"#6366f1",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:"pointer",alignSelf:"flex-start",marginTop:4 }}>Update Password</button>
+          <button style={{ background:"#197fe6",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:"pointer",alignSelf:"flex-start",marginTop:4 }}>Update Password</button>
         </div>
       </Card>
       <Card>
@@ -587,7 +587,7 @@ export function PageSettings() {
             <div key={k} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #1f2937" }}>
               <div style={{ fontSize:13,color:"#f3f4f6",textTransform:"capitalize" }}>{k}</div>
               <div onClick={()=>setNotifs(p=>({...p,[k as keyof typeof notifs]:!p[k as keyof typeof notifs]}))}
-                style={{ width:40,height:22,borderRadius:11,background:v?"#6366f1":"#374151",cursor:"pointer",position:"relative",transition:"background .2s" }}>
+                style={{ width:40,height:22,borderRadius:11,background:v?"#197fe6":"#374151",cursor:"pointer",position:"relative",transition:"background .2s" }}>
                 <div style={{ position:"absolute",top:3,left:v?20:3,width:16,height:16,borderRadius:"50%",background:"#fff",transition:"left .2s" }} />
               </div>
             </div>

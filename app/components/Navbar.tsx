@@ -99,13 +99,21 @@ export default function Navbar() {
                                             </div>
                                             
                                             <div className="space-y-1">
-                                                {userData?.Role?.trim().toLowerCase() === 'admin' && (
+                                                {userData?.Role?.trim().toLowerCase() === 'admin' ? (
                                                     <Link 
                                                         href="/admin" 
                                                         onClick={() => setIsDropdownOpen(false)}
                                                         className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#197fe6] hover:bg-[#197fe6]/5 rounded-xl transition-all ring-1 ring-[#197fe6]/20 bg-[#197fe6]/5 uppercase tracking-widest text-[10px]"
                                                     >
                                                         <LayoutDashboard size={18} /> Admin Dashboard
+                                                    </Link>
+                                                ) : (
+                                                    <Link 
+                                                        href="/student" 
+                                                        onClick={() => setIsDropdownOpen(false)}
+                                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#197fe6] hover:bg-[#197fe6]/5 rounded-xl transition-all ring-1 ring-[#197fe6]/20 bg-[#197fe6]/5 uppercase tracking-widest text-[10px]"
+                                                    >
+                                                        <LayoutDashboard size={18} /> My Dashboard
                                                     </Link>
                                                 )}
                                                 
@@ -155,8 +163,12 @@ export default function Navbar() {
                         <hr className="my-4 border-slate-100 dark:border-slate-800" />
                         {user ? (
                             <>
-                                {userData?.Role?.trim().toLowerCase() === 'admin' && (
+                                {userData?.Role?.trim().toLowerCase() === 'admin' ? (
                                     <Link className="text-lg font-black uppercase tracking-widest text-[#197fe6]" href="/admin" onClick={() => setIsMobileMenuOpen(false)}>Open Admin Console</Link>
+                                ) : (
+                                    <Link className="text-lg font-black uppercase tracking-widest text-[#197fe6] flex items-center gap-2" href="/student" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <LayoutDashboard size={20} /> My Dashboard
+                                    </Link>
                                 )}
                                 <button onClick={handleLogout} className="text-lg font-black uppercase tracking-widest text-red-500 text-left">Logout</button>
                             </>

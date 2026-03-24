@@ -144,7 +144,7 @@ export default function StudentPortal() {
           {/* Logo */}
           <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid #1f2937", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff", flexShrink: 0 }}>A</div>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#197fe6,#1d4ed8)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff", flexShrink: 0 }}>A</div>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "#f9fafb", letterSpacing: ".3px" }}>AcentoAbacus</div>
                 <div style={{ fontSize: 10, color: "#6b7280", marginTop: 1 }}>Student Portal</div>
@@ -155,7 +155,7 @@ export default function StudentPortal() {
           {/* Student Mini Card */}
           <div style={{ padding: "14px 16px", borderBottom: "1px solid #1f2937", flexShrink: 0 }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center", background: "#0f172a", borderRadius: 10, padding: "10px 12px" }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", flexShrink: 0 }}>AM</div>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#197fe6,#1d4ed8)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", flexShrink: 0 }}>AM</div>
               <div style={{ overflow: "hidden" }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#f3f4f6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{student.name}</div>
                 <div style={{ fontSize: 10, color: "#6b7280" }}>Grade 9 · {student.id}</div>
@@ -169,14 +169,14 @@ export default function StudentPortal() {
               <button key={item.id} className="nav-item" onClick={() => navigate(item.id)}
                 style={{
                   width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 10, border: "none", cursor: "pointer", textAlign: "left", marginBottom: 2,
-                  background: page === item.id ? "#1e1b4b" : "transparent",
-                  color: page === item.id ? "#a5b4fc" : "#9ca3af",
+                  background: page === item.id ? "#0c2d4e" : "transparent",
+                  color: page === item.id ? "#60a5fa" : "#9ca3af",
                   transition: "background .15s",
                 }}>
                 <span style={{ fontSize: 16 }}>{item.icon}</span>
                 <span style={{ fontSize: 13, fontWeight: page === item.id ? 700 : 500, flex: 1 }}>{item.label}</span>
                 {item.badge && <span style={{ background: "#ef4444", color: "#fff", borderRadius: 20, padding: "1px 6px", fontSize: 10, fontWeight: 700 }}>{item.badge}</span>}
-                {page === item.id && <div style={{ width: 3, height: 16, borderRadius: 2, background: "#6366f1" }} />}
+                {page === item.id && <div style={{ width: 3, height: 16, borderRadius: 2, background: "#197fe6" }} />}
               </button>
             ))}
           </nav>
@@ -215,7 +215,7 @@ export default function StudentPortal() {
             </button>
             <button style={{ width: 34, height: 34, borderRadius: 8, background: "#1f2937", border: "none", color: "#9ca3af", cursor: "pointer", fontSize: 14 }}>📥</button>
             <button style={{ width: 34, height: 34, borderRadius: 8, background: "#1f2937", border: "none", color: "#9ca3af", cursor: "pointer", fontSize: 14 }}>📆</button>
-            <div style={{ width: 34, height: 34, borderRadius: 8, background: "linear-gradient(135deg,#6366f1,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", cursor: "pointer", flexShrink: 0 }}>AM</div>
+            <div style={{ width: 34, height: 34, borderRadius: 8, background: "linear-gradient(135deg,#197fe6,#1d4ed8)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff", cursor: "pointer", flexShrink: 0 }}>AM</div>
           </div>
         </header>
 

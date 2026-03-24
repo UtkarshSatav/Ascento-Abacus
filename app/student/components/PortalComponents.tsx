@@ -1,7 +1,7 @@
 import React from "react";
 
 // --- MINI CHART COMPONENTS ---
-export function LineChartMini({ data, color = "#6366f1" }: { data: number[], color?: string }) {
+export function LineChartMini({ data, color = "#197fe6" }: { data: number[], color?: string }) {
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
@@ -31,7 +31,7 @@ export function LineChartMini({ data, color = "#6366f1" }: { data: number[], col
   );
 }
 
-export function BarChartMini({ data, labels, color = "#6366f1" }: { data: number[], labels: string[], color?: string }) {
+export function BarChartMini({ data, labels, color = "#197fe6" }: { data: number[], labels: string[], color?: string }) {
   const max = Math.max(...data);
   const w = 400, h = 100;
   const barW = (w - 40) / data.length - 8;
@@ -53,7 +53,7 @@ export function BarChartMini({ data, labels, color = "#6366f1" }: { data: number
   );
 }
 
-export function CircleProgress({ pct, size = 100, stroke = 10, color = "#6366f1" }: { pct: number, size?: number, stroke?: number, color?: string }) {
+export function CircleProgress({ pct, size = 100, stroke = 10, color = "#197fe6" }: { pct: number, size?: number, stroke?: number, color?: string }) {
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const dash = (pct / 100) * circ;
@@ -97,7 +97,7 @@ export function Skeleton({ w = "100%", h = 16, r = 6 }: { w?: string | number, h
 
 // --- BADGE ---
 export function Badge({ label, color }: { label: string, color?: string }) {
-  const map: Record<string, string> = { "Upcoming":"#6366f1","Scheduled":"#f59e0b","Completed":"#10b981","Pending":"#ef4444","Paid":"#10b981","Announcement":"#6366f1","Reminder":"#f59e0b","Event":"#10b981" };
+  const map: Record<string, string> = { "Upcoming":"#197fe6","Scheduled":"#f59e0b","Completed":"#10b981","Pending":"#ef4444","Paid":"#10b981","Announcement":"#197fe6","Reminder":"#f59e0b","Event":"#10b981" };
   const c = color || map[label] || "#6b7280";
   return <span style={{ background: c+"22", color: c, border: `1px solid ${c}44`, borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 600 }}>{label}</span>;
 }
