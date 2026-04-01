@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { 
-  student, kpis, subjects, timetable, subjectColors, exams, attendance, fees, results, teachers, notifications, documents 
-} from "./StudentData";
-import { 
-  LineChartMini, BarChartMini, CircleProgress, AttendanceCalendar, Badge, Card, SectionTitle 
+import { subjectColors } from "./StudentData";
+import { useStudentData } from "../page";
+import {
+  LineChartMini, BarChartMini, CircleProgress, AttendanceCalendar, Badge, Card, SectionTitle
 } from "./PortalComponents";
 
 // --- AI INSIGHTS ---
@@ -14,11 +13,11 @@ export function AIInsights() {
     { icon: "⚠️", title: "Attendance Risk", body: "Your attendance is 82%. Minimum 85% required. Missing 1 more day may affect eligibility.", color: "#f59e0b" },
   ];
   return (
-    <Card style={{ background: "linear-gradient(135deg,#0f172a,#1e1b4b)", border: "1px solid #3730a3" }}>
+    <Card style={{ background: "linear-gradient(135deg,#f1f5f9,#eef2ff)", border: "1px solid #c7d2fe" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <span style={{ fontSize: 18 }}>🤖</span>
-        <span style={{ fontSize: 15, fontWeight: 700, color: "#a5b4fc" }}>AI Study Insights</span>
-        <span style={{ marginLeft: "auto", background: "#197fe622", color: "#60a5fa", border: "1px solid #197fe633", borderRadius: 20, padding: "2px 10px", fontSize: 10, fontWeight: 600 }}>POWERED BY AI</span>
+        <span style={{ fontSize: 15, fontWeight: 700, color: "#4338ca" }}>AI Study Insights</span>
+        <span style={{ marginLeft: "auto", background: "#197fe622", color: "#0284c7", border: "1px solid #197fe633", borderRadius: 20, padding: "2px 10px", fontSize: 10, fontWeight: 600 }}>POWERED BY AI</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {insights.map((ins, i) => (
@@ -26,7 +25,7 @@ export function AIInsights() {
             <span style={{ fontSize: 20 }}>{ins.icon}</span>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: ins.color, marginBottom: 2 }}>{ins.title}</div>
-              <div style={{ fontSize: 12, color: "#9ca3af", lineHeight: 1.5 }}>{ins.body}</div>
+              <div style={{ fontSize: 12, color: "#4b5563", lineHeight: 1.5 }}>{ins.body}</div>
             </div>
           </div>
         ))}
@@ -38,9 +37,10 @@ export function AIInsights() {
 // --- MAIN DASHBOARD PAGES ---
 
 export function PageDashboard() {
+  const { student, kpis, notifications, results, isLive, dashboardRaw } = useStudentData();
   const perfLabels = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const subMarks = [34, 40, 43, 38, 35, 44];
-  const subLabels = ["Math","Sci","Eng","SST","Hin","CS"];
+  const subMarks = results.map(r => r.marksObtained ?? 0);
+  const subLabels = results.map(r => r.subject.slice(0, 4));
 
   const today = [
     { time: "08:00", subj: "Mathematics", teacher: "Mrs. Priya", room: "Room 9A" },
@@ -53,17 +53,17 @@ export function PageDashboard() {
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:10 }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#f9fafb" }}>Good Morning, Aryan 👋</div>
-          <div style={{ fontSize: 13, color: "#6b7280", marginTop: 3 }}>Sunday, 22 March 2025 · Grade 9 – Section A</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#111827" }}>Welcome, {student.name.split(" ")[0]} 👋</div>
+          <div style={{ fontSize: 13, color: "#6b7280", marginTop: 3 }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} · {student.class}</div>
         </div>
-        <div style={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 10, padding: "8px 16px", fontSize: 12, color: "#9ca3af" }}>
+        <div style={{ background: "#e2e8f0", border: "1px solid #cbd5e1", borderRadius: 10, padding: "8px 16px", fontSize: 12, color: "#4b5563" }}>
           📅 Academic Year 2024–25
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 14 }}>
         {kpis.map((k, i) => (
-          <Card key={i} style={{ background: "#0f172a", border: `1px solid ${k.color}33` }}>
+          <Card key={i} style={{ background: "#f1f5f9", border: `1px solid ${k.color}33` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <div style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{k.label}</div>
@@ -101,11 +101,11 @@ export function PageDashboard() {
           <SectionTitle title="Today's Classes" sub="Monday Schedule" />
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {today.map((cls, i) => (
-              <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", padding: "10px 12px", background: "#0f172a", borderRadius: 10, border: "1px solid #1f2937" }}>
+              <div key={i} style={{ display: "flex", gap: 12, alignItems: "center", padding: "10px 12px", background: "#f1f5f9", borderRadius: 10, border: "1px solid #e2e8f0" }}>
                 <div style={{ minWidth: 44, fontSize: 11, color: "#6b7280", fontWeight: 600 }}>{cls.time}</div>
                 <div style={{ width: 3, height: 32, background: (subjectColors as any)[cls.subj] || "#197fe6", borderRadius: 2 }} />
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#f3f4f6" }}>{cls.subj}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1f2937" }}>{cls.subj}</div>
                   <div style={{ fontSize: 11, color: "#6b7280" }}>{cls.teacher} · {cls.room}</div>
                 </div>
               </div>
@@ -118,13 +118,13 @@ export function PageDashboard() {
         <SectionTitle title="Recent Notifications" sub="Latest updates from school" />
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {notifications.slice(0,3).map((n,i) => (
-            <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"10px 12px", background: n.read?"#0f172a":"#0c2d4e33", borderRadius:10, border:`1px solid ${n.read?"#1f2937":"#3730a344"}` }}>
+            <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", padding:"10px 12px", background: n.read?"#f1f5f9":"#e0f2fe33", borderRadius:10, border:`1px solid ${n.read?"#e2e8f0":"#a5b4fc44"}` }}>
               <Badge label={n.type} />
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:13, fontWeight:600, color:"#f3f4f6" }}>{n.title}</div>
+                <div style={{ fontSize:13, fontWeight:600, color:"#1f2937" }}>{n.title}</div>
                 <div style={{ fontSize:11, color:"#6b7280", marginTop:2 }}>{n.body.slice(0,70)}…</div>
               </div>
-              <div style={{ fontSize:11, color:"#4b5563", whiteSpace:"nowrap" }}>{n.time}</div>
+              <div style={{ fontSize:11, color:"#9ca3af", whiteSpace:"nowrap" }}>{n.time}</div>
             </div>
           ))}
         </div>
@@ -134,14 +134,15 @@ export function PageDashboard() {
 }
 
 export function PageAcademics() {
+  const { student, subjects } = useStudentData();
   return (
     <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
       <SectionTitle title="My Academics" sub="Class, subjects and academic year info" />
       <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14 }}>
-        {[["🏫 Class","Grade 9 – Section A"],["📚 Board","CBSE"],["📅 Year","2024–25"],["🎯 Domain","Science & Technology"],["👤 Roll No","12"],["📊 GPA","8.4 / 10"]].map(([k,v],i)=>(
+        {[["🏫 Class",student.class],["📚 Board","CBSE"],["📅 Year","2024–25"],["🎯 Domain",student.domainName || "Abacus"],["👤 Roll No",String(student.roll)],["📊 ID",student.id]].map(([k,v],i)=>(
           <Card key={i} style={{padding:"14px 18px"}}>
             <div style={{fontSize:11,color:"#6b7280",marginBottom:4}}>{k}</div>
-            <div style={{fontSize:16,fontWeight:700,color:"#f9fafb"}}>{v}</div>
+            <div style={{fontSize:16,fontWeight:700,color:"#111827"}}>{v}</div>
           </Card>
         ))}
       </div>
@@ -153,10 +154,10 @@ export function PageAcademics() {
             <div key={i} style={{ display:"flex", alignItems:"center" }}>
               <div style={{ textAlign:"center", minWidth:100 }}>
                 <div style={{ fontSize:20 }}>{s}</div>
-                <div style={{ fontSize:13,fontWeight:700,color:"#f3f4f6",marginTop:4 }}>{q}</div>
+                <div style={{ fontSize:13,fontWeight:700,color:"#1f2937",marginTop:4 }}>{q}</div>
                 <div style={{ fontSize:11,color:"#6b7280" }}>{d}</div>
               </div>
-              {i<3 && <div style={{ width:40,height:2,background:"#374151" }}/>}
+              {i<3 && <div style={{ width:40,height:2,background:"#cbd5e1" }}/>}
             </div>
           ))}
         </div>
@@ -166,10 +167,10 @@ export function PageAcademics() {
         <SectionTitle title="My Subjects" sub="Current semester subjects" />
         <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
           {subjects.map((s,i)=>(
-            <div key={i} style={{ display:"grid",gridTemplateColumns:"80px 1fr 1fr 1fr",gap:12,padding:"12px 14px",background:"#0f172a",borderRadius:12,border:"1px solid #1f2937",alignItems:"center" }}>
+            <div key={i} style={{ display:"grid",gridTemplateColumns:"80px 1fr 1fr 1fr",gap:12,padding:"12px 14px",background:"#f1f5f9",borderRadius:12,border:"1px solid #e2e8f0",alignItems:"center" }}>
               <span style={{ fontSize:11,color:"#197fe6",fontWeight:700,fontFamily:"monospace" }}>{s.code}</span>
-              <span style={{ fontSize:13,fontWeight:600,color:"#f3f4f6" }}>{s.name}</span>
-              <span style={{ fontSize:12,color:"#9ca3af" }}>👩‍🏫 {s.teacher}</span>
+              <span style={{ fontSize:13,fontWeight:600,color:"#1f2937" }}>{s.name}</span>
+              <span style={{ fontSize:12,color:"#4b5563" }}>👩‍🏫 {s.teacher}</span>
               <span style={{ fontSize:11,color:"#6b7280" }}>{s.desc}</span>
             </div>
           ))}
@@ -180,6 +181,7 @@ export function PageAcademics() {
 }
 
 export function PageTimetable() {
+  const { timetable, student } = useStudentData();
   const periods = ["P1\n8:00","P2\n9:00","P3\n10:00","Break","P4\n11:30","P5\n12:30","P6\n1:30","P7\n2:30"];
   const days = Object.keys(timetable) as (keyof typeof timetable)[];
   const now = new Date();
@@ -197,7 +199,7 @@ export function PageTimetable() {
             <tr>
               <th style={{ padding:"8px 12px",textAlign:"left",fontSize:11,color:"#6b7280",fontWeight:600 }}>Period</th>
               {days.map(d=>(
-                <th key={d} style={{ padding:"8px 12px",textAlign:"center",fontSize:12,fontWeight:700,color:d===currentDay?"#197fe6":"#9ca3af",background:d===currentDay?"#0c2d4e33":"transparent",borderRadius:8 }}>{d}</th>
+                <th key={d} style={{ padding:"8px 12px",textAlign:"center",fontSize:12,fontWeight:700,color:d===currentDay?"#197fe6":"#4b5563",background:d===currentDay?"#e0f2fe33":"transparent",borderRadius:8 }}>{d}</th>
               ))}
             </tr>
           </thead>
@@ -207,10 +209,10 @@ export function PageTimetable() {
                 <td style={{ padding:"8px 10px",fontSize:10,color:"#6b7280",fontWeight:600,whiteSpace:"pre-line",verticalAlign:"middle" }}>{p}</td>
                 {days.map(d=>{
                   const subj = (timetable as any)[d][pi];
-                  const color = (subjectColors as any)[subj] || "#374151";
+                  const color = (subjectColors as any)[subj] || "#cbd5e1";
                   return (
                     <td key={d} style={{ padding:3 }}>
-                      <div style={{ background:subj==="—"?"#0f172a":color+"22",border:`1px solid ${subj==="—"?"#1f2937":color+"44"}`,borderRadius:8,padding:"8px 6px",textAlign:"center",fontSize:11,fontWeight:600,color:subj==="—"?"#374151":color,minWidth:90 }}>
+                      <div style={{ background:subj==="—"?"#f1f5f9":color+"22",border:`1px solid ${subj==="—"?"#e2e8f0":color+"44"}`,borderRadius:8,padding:"8px 6px",textAlign:"center",fontSize:11,fontWeight:600,color:subj==="—"?"#cbd5e1":color,minWidth:90 }}>
                         {subj}
                       </div>
                     </td>
@@ -223,7 +225,7 @@ export function PageTimetable() {
       </div>
       <div style={{ display:"flex",flexWrap:"wrap",gap:8 }}>
         {Object.entries(subjectColors).filter(([k])=>k!=="—").map(([k,v])=>(
-          <div key={k} style={{ display:"flex",alignItems:"center",gap:5,fontSize:11,color:"#9ca3af" }}>
+          <div key={k} style={{ display:"flex",alignItems:"center",gap:5,fontSize:11,color:"#4b5563" }}>
             <div style={{ width:10,height:10,borderRadius:3,background:v }} />{k}
           </div>
         ))}
@@ -233,17 +235,18 @@ export function PageTimetable() {
 }
 
 export function PageExams() {
+  const { exams } = useStudentData();
   const [sel,setSel] = useState<number | null>(null);
   return (
     <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
       <SectionTitle title="Examinations" sub="Schedule, details and admit cards" />
       <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
         {exams.map((e,i)=>(
-          <Card key={i} style={{ cursor:"pointer",transition:"border-color .2s",border:`1px solid ${sel===i?"#197fe6":"#1f2937"}` }}
+          <Card key={i} style={{ cursor:"pointer",transition:"border-color .2s",border:`1px solid ${sel===i?"#197fe6":"#e2e8f0"}` }}
             onClick={()=>setSel(sel===i?null:i)}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10 }}>
               <div>
-                <div style={{ fontSize:15,fontWeight:700,color:"#f3f4f6" }}>{e.name}</div>
+                <div style={{ fontSize:15,fontWeight:700,color:"#1f2937" }}>{e.name}</div>
                 <div style={{ fontSize:12,color:"#6b7280",marginTop:3 }}>📅 {e.dates} · ⏱ {e.duration}</div>
               </div>
               <div style={{ display:"flex",gap:8,alignItems:"center" }}>
@@ -252,9 +255,9 @@ export function PageExams() {
               </div>
             </div>
             {sel===i && (
-              <div style={{ marginTop:14,paddingTop:14,borderTop:"1px solid #1f2937" }}>
-                <div style={{ fontSize:12,color:"#9ca3af",marginBottom:8 }}>Subjects: {e.subjects.join(", ")}</div>
-                <div style={{ fontSize:12,color:"#6b7280",background:"#0f172a",borderRadius:8,padding:"10px 12px",marginBottom:10 }}>
+              <div style={{ marginTop:14,paddingTop:14,borderTop:"1px solid #e2e8f0" }}>
+                <div style={{ fontSize:12,color:"#4b5563",marginBottom:8 }}>Subjects: {e.subjects.join(", ")}</div>
+                <div style={{ fontSize:12,color:"#6b7280",background:"#f1f5f9",borderRadius:8,padding:"10px 12px",marginBottom:10 }}>
                   📋 Students must bring hall ticket + school ID. No electronic devices allowed. Report 15 min early.
                 </div>
                 {e.status!=="Completed" && (
@@ -270,16 +273,17 @@ export function PageExams() {
 }
 
 export function PageAttendance() {
+  const { attendance } = useStudentData();
   return (
     <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
       <SectionTitle title="Attendance" sub="Monthly and subject-wise breakdown" />
 
       {attendance.overall < 85 && (
-        <div style={{ background:"#7f1d1d22",border:"1px solid #ef444444",borderRadius:12,padding:"12px 16px",display:"flex",gap:10,alignItems:"center" }}>
+        <div style={{ background:"#fee2e2",border:"1px solid #fca5a544",borderRadius:12,padding:"12px 16px",display:"flex",gap:10,alignItems:"center" }}>
           <span style={{ fontSize:20 }}>⚠️</span>
           <div>
-            <div style={{ fontSize:13,fontWeight:700,color:"#fca5a5" }}>Low Attendance Warning</div>
-            <div style={{ fontSize:12,color:"#f87171" }}>Your attendance is {attendance.overall}%, below the required 85%. Please attend regularly.</div>
+            <div style={{ fontSize:13,fontWeight:700,color:"#b91c1c" }}>Low Attendance Warning</div>
+            <div style={{ fontSize:12,color:"#dc2626" }}>Your attendance is {attendance.overall}%, below the required 85%. Please attend regularly.</div>
           </div>
         </div>
       )}
@@ -295,7 +299,7 @@ export function PageAttendance() {
           <AttendanceCalendar />
           <div style={{ display:"flex",gap:14,marginTop:10 }}>
             {[["#10b981","Present"],["#ef4444","Absent"],["#6b7280","Holiday"]].map(([c,l])=>(
-              <div key={l} style={{ display:"flex",alignItems:"center",gap:5,fontSize:11,color:"#9ca3af" }}>
+              <div key={l} style={{ display:"flex",alignItems:"center",gap:5,fontSize:11,color:"#4b5563" }}>
                 <div style={{ width:10,height:10,borderRadius:3,background:c }} />{l}
               </div>
             ))}
@@ -308,8 +312,8 @@ export function PageAttendance() {
         <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
           {attendance.bySubject.map((s,i)=>(
             <div key={i} style={{ display:"grid",gridTemplateColumns:"160px 1fr 60px",gap:12,alignItems:"center" }}>
-              <div style={{ fontSize:12,fontWeight:600,color:"#f3f4f6" }}>{s.subject}</div>
-              <div style={{ background:"#1f2937",borderRadius:20,height:8,overflow:"hidden" }}>
+              <div style={{ fontSize:12,fontWeight:600,color:"#1f2937" }}>{s.subject}</div>
+              <div style={{ background:"#e2e8f0",borderRadius:20,height:8,overflow:"hidden" }}>
                 <div style={{ width:`${s.pct}%`,height:"100%",background:s.pct>=85?"#10b981":s.pct>=75?"#f59e0b":"#ef4444",borderRadius:20,transition:"width .5s" }} />
               </div>
               <div style={{ fontSize:12,color:s.pct>=85?"#10b981":s.pct>=75?"#f59e0b":"#ef4444",fontWeight:700,textAlign:"right" }}>{s.pct}%</div>
@@ -322,6 +326,7 @@ export function PageAttendance() {
 }
 
 export function PageFees() {
+  const { fees } = useStudentData();
   const total = fees.reduce((a,f)=>a+f.amount,0);
   const paid = fees.filter(f=>f.status==="Paid").reduce((a,f)=>a+f.amount,0);
   const pending = total - paid;
@@ -329,10 +334,10 @@ export function PageFees() {
     <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
       <SectionTitle title="Fees" sub="Fee summary, payment history and receipts" />
       <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14 }}>
-        {[["Total Fees",`₹${total.toLocaleString()}`,"#9ca3af"],["Paid",`₹${paid.toLocaleString()}`,"#10b981"],["Pending",`₹${pending.toLocaleString()}`,"#ef4444"]].map(([l,v,c],i)=>(
+        {[["Total Fees",`₹${total.toLocaleString()}`,"#4b5563"],["Paid",`₹${paid.toLocaleString()}`,"#10b981"],["Pending",`₹${pending.toLocaleString()}`,"#ef4444"]].map(([l,v,c],i)=>(
           <Card key={i}>
             <div style={{ fontSize:11,color:"#6b7280",marginBottom:4 }}>{l}</div>
-            <div style={{ fontSize:26,fontWeight:800,color:c||"#f9fafb" }}>{v}</div>
+            <div style={{ fontSize:26,fontWeight:800,color:c||"#111827" }}>{v}</div>
           </Card>
         ))}
       </div>
@@ -342,21 +347,21 @@ export function PageFees() {
           <thead>
             <tr>
               {["Fee Type","Amount","Due Date","Status","Action"].map(h=>(
-                <th key={h} style={{ textAlign:"left",padding:"8px 12px",fontSize:11,color:"#6b7280",borderBottom:"1px solid #1f2937",fontWeight:600 }}>{h}</th>
+                <th key={h} style={{ textAlign:"left",padding:"8px 12px",fontSize:11,color:"#6b7280",borderBottom:"1px solid #e2e8f0",fontWeight:600 }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {fees.map((f,i)=>(
-              <tr key={i} style={{ borderBottom:"1px solid #0f172a" }}>
-                <td style={{ padding:"10px 12px",fontSize:13,color:"#f3f4f6" }}>{f.type}</td>
-                <td style={{ padding:"10px 12px",fontSize:13,color:"#f3f4f6",fontWeight:700 }}>₹{f.amount.toLocaleString()}</td>
+              <tr key={i} style={{ borderBottom:"1px solid #f1f5f9" }}>
+                <td style={{ padding:"10px 12px",fontSize:13,color:"#1f2937" }}>{f.type}</td>
+                <td style={{ padding:"10px 12px",fontSize:13,color:"#1f2937",fontWeight:700 }}>₹{f.amount.toLocaleString()}</td>
                 <td style={{ padding:"10px 12px",fontSize:12,color:"#6b7280" }}>{f.due}</td>
                 <td style={{ padding:"10px 12px" }}><Badge label={f.status} /></td>
                 <td style={{ padding:"10px 12px" }}>
                   {f.status==="Pending"
                     ? <button style={{ background:"#197fe6",color:"#fff",border:"none",borderRadius:6,padding:"5px 12px",fontSize:11,fontWeight:600,cursor:"pointer" }}>Pay Now</button>
-                    : <button style={{ background:"#1f2937",color:"#9ca3af",border:"none",borderRadius:6,padding:"5px 12px",fontSize:11,cursor:"pointer" }}>📥 Receipt</button>
+                    : <button style={{ background:"#e2e8f0",color:"#4b5563",border:"none",borderRadius:6,padding:"5px 12px",fontSize:11,cursor:"pointer" }}>📥 Receipt</button>
                   }
                 </td>
               </tr>
@@ -369,6 +374,7 @@ export function PageFees() {
 }
 
 export function PageResults() {
+  const { results } = useStudentData();
   return (
     <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10 }}>
@@ -379,21 +385,21 @@ export function PageResults() {
         <table style={{ width:"100%",borderCollapse:"collapse" }}>
           <thead>
             <tr>
-              {["Subject","UT1 /50","UT2 /50","UT3","Mid-Term","Grade"].map(h=>(
-                <th key={h} style={{ textAlign:"left",padding:"8px 12px",fontSize:11,color:"#6b7280",borderBottom:"1px solid #1f2937",fontWeight:600 }}>{h}</th>
+              {["Subject","Marks","Total","Percentage","Grade"].map(h=>(
+                <th key={h} style={{ textAlign:"left",padding:"8px 12px",fontSize:11,color:"#6b7280",borderBottom:"1px solid #e2e8f0",fontWeight:600 }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {results.map((r,i)=>{
+              const pct = r.marksObtained !== null && r.totalMarks > 0 ? Math.round((r.marksObtained / r.totalMarks) * 100) : null;
               return (
-                <tr key={i} style={{ borderBottom:"1px solid #0f172a" }}>
-                  <td style={{ padding:"10px 12px",fontSize:13,color:"#f3f4f6",fontWeight:600 }}>{r.subject}</td>
-                  <td style={{ padding:"10px 12px",fontSize:13,color:r.ut1! >= 40?"#10b981":r.ut1! >= 35?"#f59e0b":"#ef4444",fontWeight:700 }}>{r.ut1}</td>
-                  <td style={{ padding:"10px 12px",fontSize:13,color:r.ut2! >= 40?"#10b981":r.ut2! >= 35?"#f59e0b":"#ef4444",fontWeight:700 }}>{r.ut2}</td>
-                  <td style={{ padding:"10px 12px",fontSize:12,color:"#4b5563" }}>—</td>
-                  <td style={{ padding:"10px 12px",fontSize:12,color:"#4b5563" }}>—</td>
-                  <td style={{ padding:"10px 12px" }}><Badge label={r.grade} /></td>
+                <tr key={i} style={{ borderBottom:"1px solid #f1f5f9" }}>
+                  <td style={{ padding:"10px 12px",fontSize:13,color:"#1f2937",fontWeight:600 }}>{r.subject}</td>
+                  <td style={{ padding:"10px 12px",fontSize:13,color:pct !== null ? (pct >= 80?"#10b981":pct >= 60?"#f59e0b":"#ef4444") : "#9ca3af",fontWeight:700 }}>{r.marksObtained ?? "—"}</td>
+                  <td style={{ padding:"10px 12px",fontSize:13,color:"#6b7280" }}>{r.totalMarks}</td>
+                  <td style={{ padding:"10px 12px",fontSize:13,color:pct !== null ? (pct >= 80?"#10b981":pct >= 60?"#f59e0b":"#ef4444") : "#9ca3af",fontWeight:600 }}>{pct !== null ? `${pct}%` : "—"}</td>
+                  <td style={{ padding:"10px 12px" }}>{r.grade ? <Badge label={r.grade} /> : <span style={{ color:"#9ca3af" }}>—</span>}</td>
                 </tr>
               );
             })}
@@ -401,14 +407,15 @@ export function PageResults() {
         </table>
       </Card>
       <Card>
-        <SectionTitle title="UT2 Marks Comparison" sub="Your score vs class average" />
-        <BarChartMini data={results.map(r=>r.ut2!)} labels={results.map(r=>r.subject.slice(0,4))} color="#197fe6" />
+        <SectionTitle title="Marks Comparison" sub="Your scores across subjects" />
+        <BarChartMini data={results.map(r=>r.marksObtained ?? 0)} labels={results.map(r=>r.subject.slice(0,4))} color="#197fe6" />
       </Card>
     </div>
   );
 }
 
 export function PageTeachers() {
+  const { teachers } = useStudentData();
   const initials = (name: string) => name.split(" ").map(w=>w[0]).join("").slice(0,2);
   const colors = ["#197fe6","#10b981","#f59e0b","#ec4899","#14b8a6","#1d4ed8"];
   return (
@@ -422,7 +429,7 @@ export function PageTeachers() {
                 {initials(t.name)}
               </div>
               <div>
-                <div style={{ fontSize:14,fontWeight:700,color:"#f3f4f6" }}>{t.name}</div>
+                <div style={{ fontSize:14,fontWeight:700,color:"#1f2937" }}>{t.name}</div>
                 <div style={{ fontSize:12,color:colors[i%colors.length],marginTop:2,fontWeight:600 }}>{t.subject}</div>
                 <div style={{ fontSize:11,color:"#6b7280",marginTop:6 }}>🎓 {t.exp} experience</div>
                 <div style={{ fontSize:11,color:"#6b7280",marginTop:2 }}>📧 {t.email}</div>
@@ -437,6 +444,7 @@ export function PageTeachers() {
 }
 
 export function PageNotifications() {
+  const { notifications } = useStudentData();
   const [filter,setFilter] = useState("All");
   const types = ["All","Announcement","Reminder","Event"];
   const filtered = filter==="All"?notifications:notifications.filter(n=>n.type===filter);
@@ -446,24 +454,24 @@ export function PageNotifications() {
       <div style={{ display:"flex",gap:8 }}>
         {types.map(t=>(
           <button key={t} onClick={()=>setFilter(t)}
-            style={{ background:filter===t?"#197fe6":"#1f2937",color:filter===t?"#fff":"#9ca3af",border:`1px solid ${filter===t?"#197fe6":"#374151"}`,borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:600,cursor:"pointer" }}>
+            style={{ background:filter===t?"#197fe6":"#e2e8f0",color:filter===t?"#fff":"#4b5563",border:`1px solid ${filter===t?"#197fe6":"#cbd5e1"}`,borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:600,cursor:"pointer" }}>
             {t}
           </button>
         ))}
       </div>
       <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
         {filtered.map((n,i)=>(
-          <Card key={i} style={{ background:n.read?"#111827":"#1e1b4b22",border:`1px solid ${n.read?"#1f2937":"#3730a344"}` }}>
+          <Card key={i} style={{ background:n.read?"#ffffff":"#e0e7ff",border:`1px solid ${n.read?"#e2e8f0":"#a5b4fc44"}` }}>
             <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10 }}>
               <div style={{ display:"flex",gap:10,alignItems:"flex-start" }}>
                 <Badge label={n.type} />
                 <div>
-                  <div style={{ fontSize:13,fontWeight:700,color:"#f3f4f6",marginBottom:4 }}>{n.title}</div>
-                  <div style={{ fontSize:12,color:"#9ca3af",lineHeight:1.6 }}>{n.body}</div>
+                  <div style={{ fontSize:13,fontWeight:700,color:"#1f2937",marginBottom:4 }}>{n.title}</div>
+                  <div style={{ fontSize:12,color:"#4b5563",lineHeight:1.6 }}>{n.body}</div>
                 </div>
               </div>
               <div style={{ display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6 }}>
-                <div style={{ fontSize:11,color:"#4b5563",whiteSpace:"nowrap" }}>{n.time}</div>
+                <div style={{ fontSize:11,color:"#9ca3af",whiteSpace:"nowrap" }}>{n.time}</div>
                 {!n.read && <div style={{ width:8,height:8,borderRadius:"50%",background:"#197fe6" }} />}
               </div>
             </div>
@@ -475,6 +483,7 @@ export function PageNotifications() {
 }
 
 export function PageDocuments() {
+  const { documents } = useStudentData();
   const icons: Record<string, string> = { "Admit Card":"🎫","Report Card":"📊","Receipt":"🧾","Certificate":"📜" };
   return (
     <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
@@ -486,14 +495,14 @@ export function PageDocuments() {
               <div style={{ display:"flex",gap:12,alignItems:"center" }}>
                 <div style={{ fontSize:28 }}>{icons[d.type]||"📄"}</div>
                 <div>
-                  <div style={{ fontSize:13,fontWeight:700,color:"#f3f4f6" }}>{d.name}</div>
+                  <div style={{ fontSize:13,fontWeight:700,color:"#1f2937" }}>{d.name}</div>
                   <div style={{ fontSize:11,color:"#6b7280",marginTop:2 }}>
                     <Badge label={d.type} /> · {d.date} · {d.size}
                   </div>
                 </div>
               </div>
               <div style={{ display:"flex",gap:8 }}>
-                <button style={{ background:"#1f2937",color:"#9ca3af",border:"1px solid #374151",borderRadius:8,padding:"6px 14px",fontSize:12,cursor:"pointer" }}>👁 Preview</button>
+                <button style={{ background:"#e2e8f0",color:"#4b5563",border:"1px solid #cbd5e1",borderRadius:8,padding:"6px 14px",fontSize:12,cursor:"pointer" }}>👁 Preview</button>
                 <button style={{ background:"#197fe6",color:"#fff",border:"none",borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer" }}>📥 Download</button>
               </div>
             </div>
@@ -505,10 +514,11 @@ export function PageDocuments() {
 }
 
 export function PageProfile() {
+  const { student, attendance } = useStudentData();
   const Field = ({label,value}: {label:string, value:string}) => (
-    <div style={{ padding:"12px 0",borderBottom:"1px solid #1f2937" }}>
+    <div style={{ padding:"12px 0",borderBottom:"1px solid #e2e8f0" }}>
       <div style={{ fontSize:11,color:"#6b7280",marginBottom:3 }}>{label}</div>
-      <div style={{ fontSize:13,fontWeight:600,color:"#f3f4f6" }}>{value}</div>
+      <div style={{ fontSize:13,fontWeight:600,color:"#1f2937" }}>{value}</div>
     </div>
   );
   return (
@@ -517,7 +527,7 @@ export function PageProfile() {
       <div style={{ display:"grid",gridTemplateColumns:"auto 1fr",gap:20 }}>
         <Card style={{ textAlign:"center",padding:"28px 24px",minWidth:160 }}>
           <div style={{ width:72,height:72,borderRadius:20,background:"linear-gradient(135deg,#197fe6,#1d4ed8)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:800,color:"#fff",margin:"0 auto 12px" }}>AM</div>
-          <div style={{ fontSize:15,fontWeight:700,color:"#f9fafb" }}>{student.name}</div>
+          <div style={{ fontSize:15,fontWeight:700,color:"#111827" }}>{student.name}</div>
           <div style={{ fontSize:12,color:"#197fe6",marginTop:3,fontWeight:600 }}>{student.id}</div>
           <div style={{ fontSize:11,color:"#6b7280",marginTop:6 }}>{student.class}</div>
           <div style={{ fontSize:11,color:"#6b7280",marginTop:2 }}>Roll No: {student.roll}</div>
@@ -557,37 +567,37 @@ export function PageSettings() {
     <div style={{ display:"flex",flexDirection:"column",gap:20,maxWidth:640 }}>
       <SectionTitle title="Settings" sub="Preferences, security and notifications" />
       <Card>
-        <div style={{ fontSize:13,fontWeight:700,color:"#f3f4f6",marginBottom:14 }}>🎨 Appearance</div>
+        <div style={{ fontSize:13,fontWeight:700,color:"#1f2937",marginBottom:14 }}>🎨 Appearance</div>
         <div style={{ display:"flex",gap:10 }}>
           {["dark","light"].map(t=>(
             <button key={t} onClick={()=>setTheme(t)}
-              style={{ background:theme===t?"#197fe6":"#1f2937",color:theme===t?"#fff":"#9ca3af",border:`1px solid ${theme===t?"#197fe6":"#374151"}`,borderRadius:8,padding:"8px 20px",fontSize:12,fontWeight:600,cursor:"pointer",textTransform:"capitalize" }}>
+              style={{ background:theme===t?"#197fe6":"#e2e8f0",color:theme===t?"#fff":"#4b5563",border:`1px solid ${theme===t?"#197fe6":"#cbd5e1"}`,borderRadius:8,padding:"8px 20px",fontSize:12,fontWeight:600,cursor:"pointer",textTransform:"capitalize" }}>
               {t==="dark"?"🌙 Dark":"☀️ Light"}
             </button>
           ))}
         </div>
       </Card>
       <Card>
-        <div style={{ fontSize:13,fontWeight:700,color:"#f3f4f6",marginBottom:14 }}>🔒 Security</div>
+        <div style={{ fontSize:13,fontWeight:700,color:"#1f2937",marginBottom:14 }}>🔒 Security</div>
         <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
           {["Current Password","New Password","Confirm Password"].map((label,i)=>(
             <div key={i}>
               <div style={{ fontSize:11,color:"#6b7280",marginBottom:4 }}>{label}</div>
               <input type="password" placeholder="••••••••"
-                style={{ width:"100%",background:"#0f172a",border:"1px solid #374151",borderRadius:8,padding:"9px 12px",color:"#f3f4f6",fontSize:13,outline:"none",boxSizing:"border-box" }} />
+                style={{ width:"100%",background:"#f1f5f9",border:"1px solid #cbd5e1",borderRadius:8,padding:"9px 12px",color:"#1f2937",fontSize:13,outline:"none",boxSizing:"border-box" }} />
             </div>
           ))}
           <button style={{ background:"#197fe6",color:"#fff",border:"none",borderRadius:8,padding:"9px 16px",fontSize:12,fontWeight:600,cursor:"pointer",alignSelf:"flex-start",marginTop:4 }}>Update Password</button>
         </div>
       </Card>
       <Card>
-        <div style={{ fontSize:13,fontWeight:700,color:"#f3f4f6",marginBottom:14 }}>🔔 Notification Preferences</div>
+        <div style={{ fontSize:13,fontWeight:700,color:"#1f2937",marginBottom:14 }}>🔔 Notification Preferences</div>
         <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
           {Object.entries(notifs).map(([k,v])=>(
-            <div key={k} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #1f2937" }}>
-              <div style={{ fontSize:13,color:"#f3f4f6",textTransform:"capitalize" }}>{k}</div>
+            <div key={k} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #e2e8f0" }}>
+              <div style={{ fontSize:13,color:"#1f2937",textTransform:"capitalize" }}>{k}</div>
               <div onClick={()=>setNotifs(p=>({...p,[k as keyof typeof notifs]:!p[k as keyof typeof notifs]}))}
-                style={{ width:40,height:22,borderRadius:11,background:v?"#197fe6":"#374151",cursor:"pointer",position:"relative",transition:"background .2s" }}>
+                style={{ width:40,height:22,borderRadius:11,background:v?"#197fe6":"#cbd5e1",cursor:"pointer",position:"relative",transition:"background .2s" }}>
                 <div style={{ position:"absolute",top:3,left:v?20:3,width:16,height:16,borderRadius:"50%",background:"#fff",transition:"left .2s" }} />
               </div>
             </div>
