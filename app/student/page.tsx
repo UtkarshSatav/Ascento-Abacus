@@ -5,15 +5,11 @@ import { useRouter } from "next/navigation";
 import { auth, db } from "../../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import * as api from "../../lib/studentApi";
 import {
   StudentProfile, KPI, Subject, ExamItem, FeeItem, ResultItem,
   TeacherItem, NotificationItem, AttendanceData, TimetableData, DocumentItem,
   mockStudent, mockKpis, mockSubjects, mockExams, mockFees, mockResults,
   mockTeachers, mockNotifications, mockAttendance, mockTimetable, mockDocuments,
-  transformStudentProfile, transformDashboardToKPIs, transformFees,
-  transformExams, transformMarksToResults, transformAttendance,
-  transformTimetable, transformNotifications, subjectColors,
 } from "./components/StudentData";
 import { Skeleton } from "./components/PortalComponents";
 import {
@@ -120,79 +116,29 @@ export default function StudentPortal() {
   const [dashboardRaw, setDashboardRaw] = useState<any>(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // ─── Fetch all data from backend ─────────────────────────────────────────
+  // ─── Fetch all data from PostgreSQL via Next.js API route ────────────────
   const fetchAllData = useCallback(async () => {
-    const sessionKey = api.getSessionKey();
-    if (!sessionKey) return;
-
     try {
-      // Fetch all data in parallel
-      const [dashboardRes, enrollmentRes, feesRes, examsRes, marksRes, timetableRes, attendanceRes, notifRes] =
-        await Promise.allSettled([
-          api.getStudentDashboard(),
-          api.getCurrentClass(),
-          api.getFees(),
-          api.getExams(),
-          api.getMarks(),
-          api.getTimetable(),
-          api.getAttendance({ limit: 365 }),
-          api.getNotifications(),
-        ]);
+      const res = await fetch("/api/student");
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+      const data = await res.json();
 
-      const dashboard = dashboardRes.status === "fulfilled" ? dashboardRes.value : null;
-      const enrollment = enrollmentRes.status === "fulfilled" ? enrollmentRes.value : null;
-      const feesRaw = feesRes.status === "fulfilled" ? feesRes.value : null;
-      const examsRaw = examsRes.status === "fulfilled" ? examsRes.value : null;
-      const marksRaw = marksRes.status === "fulfilled" ? marksRes.value : null;
-      const timetableRaw = timetableRes.status === "fulfilled" ? timetableRes.value : null;
-      const attendanceRaw = attendanceRes.status === "fulfilled" ? attendanceRes.value : null;
-      const notifsRaw = notifRes.status === "fulfilled" ? notifRes.value : null;
-
-      // Transform & set data
-      const storedUser = api.getStoredUser();
-      if (storedUser) {
-        setStudentData(transformStudentProfile(storedUser, enrollment));
-      }
-
-      if (dashboard) {
-        setDashboardRaw(dashboard);
-        setKpisData(transformDashboardToKPIs(dashboard));
-
-        // Build today's timetable from dashboard
-        if (dashboard.timetable && dashboard.timetable.length > 0) {
-          // Dashboard timetable is today's periods
-        }
-      }
-
-      if (feesRaw) {
-        setFeesData(transformFees(Array.isArray(feesRaw) ? feesRaw : []));
-      }
-
-      if (examsRaw) {
-        setExamsData(transformExams(Array.isArray(examsRaw) ? examsRaw : []));
-      }
-
-      if (marksRaw) {
-        setResultsData(transformMarksToResults(Array.isArray(marksRaw) ? marksRaw : []));
-      }
-
-      if (timetableRaw?.table) {
-        setTimetableData(transformTimetable(timetableRaw.table));
-      }
-
-      if (attendanceRaw?.data) {
-        setAttendanceData(transformAttendance(attendanceRaw.data));
-      }
-
-      if (notifsRaw) {
-        const transformed = transformNotifications(Array.isArray(notifsRaw) ? notifsRaw : []);
-        setNotificationsData(transformed);
-        setUnreadCount(transformed.filter(n => !n.read).length);
-      }
-
+      setStudentData(data.profile);
+      setKpisData(data.kpis);
+      setSubjectsData(data.subjects);
+      setTimetableData(data.timetable);
+      setExamsData(data.exams);
+      setAttendanceData(data.attendance);
+      setFeesData(data.fees);
+      setResultsData(data.results);
+      setTeachersData(data.teachers);
+      setNotificationsData(data.notifications);
+      setDocumentsData(data.documents);
+      setDashboardRaw(data);
+      setUnreadCount(data.notifications.filter((n: any) => !n.read).length);
       setIsLive(true);
     } catch (err) {
-      console.warn("Backend unavailable, using mock data:", err);
+      console.warn("Database unavailable, using mock data:", err);
       setIsLive(false);
     }
   }, []);
@@ -210,13 +156,16 @@ export default function StudentPortal() {
             setUser(firebaseUser);
             setAuthLoading(false);
 
-            // Try to connect to backend
+            // Fetch data from PostgreSQL
             fetchAllData();
           } else {
             router.push("/profile");
           }
         } else {
-          router.push("/login");
+          // No Firestore doc — still load portal with DB data
+          setUser(firebaseUser);
+          setAuthLoading(false);
+          fetchAllData();
         }
       } else {
         router.push("/login");
