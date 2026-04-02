@@ -26,6 +26,10 @@ import {
   Save,
   Clock,
   MoreVertical,
+  Upload,
+  Trash2,
+  Edit3,
+  Download,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -68,6 +72,14 @@ export default function AdminPortal() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  const [selectedSectionId, setSelectedSectionId] = useState("");
+
+  // Teacher edit
+  const [editingTeacher, setEditingTeacher] = useState<any>(null);
+
+  // Bulk upload
+  const [bulkCsvText, setBulkCsvText] = useState("");
+  const [bulkMarksCsvText, setBulkMarksCsvText] = useState("");
 
   // UI state
   const [searchQuery, setSearchQuery] = useState("");
@@ -128,12 +140,14 @@ export default function AdminPortal() {
 
   const fetchAttendance = useCallback(async () => {
     try {
-      const res = await fetch(`/api/admin/attendance?date=${selectedDate}`);
+      let url = `/api/admin/attendance?date=${selectedDate}`;
+      if (selectedSectionId) url += `&sectionId=${selectedSectionId}`;
+      const res = await fetch(url);
       if (res.ok) setAttendanceData(await res.json());
     } catch (err) {
       console.error("Attendance fetch error:", err);
     }
-  }, [selectedDate]);
+  }, [selectedDate, selectedSectionId]);
 
   const fetchFees = useCallback(async () => {
     try {
@@ -229,7 +243,7 @@ export default function AdminPortal() {
           await fetchEnquiries();
           break;
         case "attendance":
-          await fetchAttendance();
+          await Promise.all([fetchAttendance(), fetchSections()]);
           break;
         case "fees":
           await Promise.all([fetchFees(), fetchStudents()]);
@@ -244,7 +258,7 @@ export default function AdminPortal() {
           await Promise.all([fetchNotifications(), fetchStudents()]);
           break;
         case "teachers":
-          await fetchTeachers();
+          await Promise.all([fetchTeachers(), fetchSubjects()]);
           break;
       }
       setDataLoading(false);
@@ -264,12 +278,12 @@ export default function AdminPortal() {
     fetchSubjects,
   ]);
 
-  // Refetch attendance when date changes
+  // Refetch attendance when date or section changes
   useEffect(() => {
     if (activeTab === "attendance") {
       fetchAttendance();
     }
-  }, [selectedDate, activeTab, fetchAttendance]);
+  }, [selectedDate, selectedSectionId, activeTab, fetchAttendance]);
 
   // ── Handlers ────────────────────────────────────────────────────────
   const handleLogout = () => {
@@ -304,6 +318,23 @@ export default function AdminPortal() {
         endpoint = "/api/admin/exams";
       } else if (modalType === "notification") {
         endpoint = "/api/admin/notifications";
+      } else if (modalType === "teacher") {
+        endpoint = "/api/admin/teachers";
+        // Collect subjectIds from checkboxes
+        const form = e.currentTarget as HTMLFormElement;
+        const checkedBoxes = form.querySelectorAll('input[name="subjectIds"]:checked');
+        data.subjectIds = Array.from(checkedBoxes).map((cb: any) => cb.value);
+        delete data.subjectIds; // remove the single FormData entry
+        const subjectIds = Array.from(checkedBoxes).map((cb: any) => cb.value);
+        data.subjectIds = subjectIds;
+      } else if (modalType === "edit-teacher") {
+        endpoint = "/api/admin/teachers";
+        method = "PATCH";
+        data.id = editingTeacher?.id;
+        // Collect subjectIds from checkboxes
+        const form = e.currentTarget as HTMLFormElement;
+        const checkedBoxes = form.querySelectorAll('input[name="subjectIds"]:checked');
+        data.subjectIds = Array.from(checkedBoxes).map((cb: any) => cb.value);
       }
 
       if (endpoint) {
@@ -319,6 +350,7 @@ export default function AdminPortal() {
         }
 
         setIsModalOpen(false);
+        setEditingTeacher(null);
         showToast("Saved successfully");
 
         // Refetch relevant data
@@ -327,6 +359,7 @@ export default function AdminPortal() {
         else if (modalType === "fee") fetchFees();
         else if (modalType === "exam") fetchExams();
         else if (modalType === "notification") fetchNotifications();
+        else if (modalType === "teacher" || modalType === "edit-teacher") fetchTeachers();
 
         // Also refresh dashboard
         fetchDashboard();
@@ -437,6 +470,186 @@ export default function AdminPortal() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // ── Delete Teacher ─────────────────────────────────────────────
+  const deleteTeacher = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this teacher?")) return;
+    try {
+      const res = await fetch(`/api/admin/teachers?id=${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        fetchTeachers();
+        fetchDashboard();
+        showToast("Teacher deleted successfully");
+      } else {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to delete teacher");
+      }
+    } catch (err: any) {
+      console.error("Delete teacher error:", err);
+      alert(err.message || "Failed to delete teacher.");
+    }
+  };
+
+  // ── Edit Teacher ──────────────────────────────────────────────
+  const openEditTeacher = (teacher: any) => {
+    setEditingTeacher(teacher);
+    setModalType("edit-teacher");
+    setIsModalOpen(true);
+  };
+
+  // ── Bulk Upload Students ──────────────────────────────────────
+  const handleBulkStudentsUpload = async (sectionId: string, academicYear: string) => {
+    if (!bulkCsvText.trim()) {
+      alert("Please paste CSV data first.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const lines = bulkCsvText.trim().split("\n").map((l) => l.trim()).filter(Boolean);
+      if (lines.length < 2) {
+        alert("CSV must have a header row and at least one data row.");
+        setIsSubmitting(false);
+        return;
+      }
+      // Skip header row
+      const studentRows = lines.slice(1).map((line) => {
+        const cols = line.split(",").map((c) => c.trim());
+        return {
+          fullName: cols[0] || "",
+          email: cols[1] || `${Date.now()}@placeholder.com`,
+          phone: cols[2] || "",
+          dateOfBirth: cols[3] || "",
+          gender: cols[4] || "",
+          bloodGroup: cols[5] || "",
+          rollNumber: cols[6] || "",
+          parentName: cols[7] || "",
+          parentPhone: cols[8] || "",
+          parentEmail: cols[9] || "",
+          address: cols[10] || "",
+          city: cols[11] || "",
+          state: cols[12] || "",
+        };
+      });
+
+      const res = await fetch("/api/admin/students", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ students: studentRows, sectionId, academicYear }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Bulk upload failed");
+      }
+
+      setIsModalOpen(false);
+      setBulkCsvText("");
+      showToast("Students uploaded successfully");
+      fetchStudents();
+      fetchDashboard();
+    } catch (err: any) {
+      console.error("Bulk students upload error:", err);
+      alert(err.message || "Failed to upload students.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ── Bulk Upload Marks ─────────────────────────────────────────
+  const handleBulkMarksUpload = async () => {
+    if (!selectedExamId) {
+      alert("Please select an exam first.");
+      return;
+    }
+    if (!bulkMarksCsvText.trim()) {
+      alert("Please paste CSV data first.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const lines = bulkMarksCsvText.trim().split("\n").map((l) => l.trim()).filter(Boolean);
+      if (lines.length < 2) {
+        alert("CSV must have a header row and at least one data row.");
+        setIsSubmitting(false);
+        return;
+      }
+      // Skip header row
+      const marksEntries = lines.slice(1).map((line) => {
+        const cols = line.split(",").map((c) => c.trim());
+        const studentIdOrCode = cols[0] || "";
+        const subjectCode = cols[1] || "";
+        const marksObtained = parseFloat(cols[2] || "0");
+        const totalMarks = parseFloat(cols[3] || "50");
+
+        // Try to map studentId code to actual ID
+        const matchedStudent = students.find(
+          (s) => s.studentId === studentIdOrCode || s.id === studentIdOrCode
+        );
+        // Try to map subjectCode to actual subject ID
+        const matchedSubject = subjects.find(
+          (s) => s.code === subjectCode || s.name === subjectCode || s.id === subjectCode
+        );
+
+        return {
+          studentId: matchedStudent?.id || studentIdOrCode,
+          subjectId: matchedSubject?.id || subjectCode,
+          examId: selectedExamId,
+          marksObtained,
+          totalMarks,
+        };
+      });
+
+      const res = await fetch("/api/admin/marks", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ examId: selectedExamId, marks: marksEntries }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Bulk marks upload failed");
+      }
+
+      setBulkMarksCsvText("");
+      showToast("Marks uploaded successfully");
+      fetchMarks(selectedExamId);
+    } catch (err: any) {
+      console.error("Bulk marks upload error:", err);
+      alert(err.message || "Failed to upload marks.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ── Download CSV Template helpers ──────────────────────────────
+  const downloadCsv = (filename: string, content: string) => {
+    const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadStudentTemplate = () => {
+    const header = "fullName,email,phone,dateOfBirth,gender,bloodGroup,rollNumber,parentName,parentPhone,parentEmail,address,city,state";
+    downloadCsv("students_template.csv", header + "\n");
+  };
+
+  const downloadMarksTemplate = () => {
+    const header = "studentId,subjectCode,marksObtained,totalMarks";
+    let csv = header + "\n";
+    // Pre-fill with student/subject combinations
+    students.forEach((s) => {
+      subjects.forEach((sub) => {
+        csv += `${s.studentId || s.id},${sub.code || sub.name},,50\n`;
+      });
+    });
+    downloadCsv("marks_template.csv", csv);
   };
 
   // ── Loading Screen ──────────────────────────────────────────────────
@@ -855,12 +1068,23 @@ export default function AdminPortal() {
                   <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                     Students
                   </h2>
-                  <button
-                    onClick={() => openModal("student")}
-                    className="px-6 py-3.5 rounded-2xl bg-[#197fe6] text-white font-bold text-xs shadow-lg shadow-[#197fe6]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
-                  >
-                    <Plus size={16} /> Add Student
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setBulkCsvText("");
+                        openModal("bulk-students");
+                      }}
+                      className="px-6 py-3.5 rounded-2xl bg-white text-[#197fe6] border border-[#197fe6] font-bold text-xs hover:bg-[#197fe6]/5 active:scale-95 transition-all flex items-center gap-2"
+                    >
+                      <Upload size={16} /> Bulk Upload
+                    </button>
+                    <button
+                      onClick={() => openModal("student")}
+                      className="px-6 py-3.5 rounded-2xl bg-[#197fe6] text-white font-bold text-xs shadow-lg shadow-[#197fe6]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+                    >
+                      <Plus size={16} /> Add Student
+                    </button>
+                  </div>
                 </div>
                 <DataTable
                   columns={[
@@ -1014,14 +1238,31 @@ export default function AdminPortal() {
                   <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                     Attendance
                   </h2>
-                  <div className="flex items-center gap-4 bg-white p-2 px-4 rounded-2xl border border-slate-200">
-                    <Calendar size={18} className="text-[#197fe6]" />
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="bg-transparent font-bold outline-none text-sm"
-                    />
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 bg-white p-2 px-4 rounded-2xl border border-slate-200">
+                      <Calendar size={18} className="text-[#197fe6]" />
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="bg-transparent font-bold outline-none text-sm"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 bg-white p-2 px-4 rounded-2xl border border-slate-200">
+                      <Users size={18} className="text-[#197fe6]" />
+                      <select
+                        value={selectedSectionId}
+                        onChange={(e) => setSelectedSectionId(e.target.value)}
+                        className="bg-transparent font-bold outline-none text-sm cursor-pointer"
+                      >
+                        <option value="">All Sections</option>
+                        {sections.map((sec: any) => (
+                          <option key={sec.id} value={sec.id}>
+                            {sec.class?.name || ""} - {sec.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -1259,19 +1500,30 @@ export default function AdminPortal() {
                     Marks Entry
                   </h2>
                   {selectedExamId && (
-                    <button
-                      onClick={saveMarks}
-                      disabled={isSubmitting}
-                      className="px-6 py-3.5 rounded-2xl bg-[#197fe6] text-white font-bold text-xs shadow-lg shadow-[#197fe6]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
-                    >
-                      {isSubmitting ? (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        <>
-                          <Save size={16} /> Save Marks
-                        </>
-                      )}
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          setBulkMarksCsvText("");
+                          openModal("bulk-marks");
+                        }}
+                        className="px-6 py-3.5 rounded-2xl bg-white text-[#197fe6] border border-[#197fe6] font-bold text-xs hover:bg-[#197fe6]/5 active:scale-95 transition-all flex items-center gap-2"
+                      >
+                        <Upload size={16} /> Bulk Upload
+                      </button>
+                      <button
+                        onClick={saveMarks}
+                        disabled={isSubmitting}
+                        className="px-6 py-3.5 rounded-2xl bg-[#197fe6] text-white font-bold text-xs shadow-lg shadow-[#197fe6]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {isSubmitting ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Save size={16} /> Save Marks
+                          </>
+                        )}
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -1444,6 +1696,12 @@ export default function AdminPortal() {
                   <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                     Teachers
                   </h2>
+                  <button
+                    onClick={() => openModal("teacher")}
+                    className="px-6 py-3.5 rounded-2xl bg-[#197fe6] text-white font-bold text-xs shadow-lg shadow-[#197fe6]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+                  >
+                    <Plus size={16} /> Add Teacher
+                  </button>
                 </div>
                 <div className="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm">
                   <table className="w-full text-left">
@@ -1454,6 +1712,7 @@ export default function AdminPortal() {
                         <th className="px-8 py-5">Phone</th>
                         <th className="px-8 py-5">Experience</th>
                         <th className="px-8 py-5">Subjects</th>
+                        <th className="px-8 py-5 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -1490,12 +1749,30 @@ export default function AdminPortal() {
                               )}
                             </div>
                           </td>
+                          <td className="px-8 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => openEditTeacher(teacher)}
+                                className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#197fe6] hover:bg-blue-50 transition-all border border-slate-100"
+                                title="Edit"
+                              >
+                                <Edit3 size={14} />
+                              </button>
+                              <button
+                                onClick={() => deleteTeacher(teacher.id)}
+                                className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all border border-slate-100"
+                                title="Delete"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                       {teachers.length === 0 && (
                         <tr>
                           <td
-                            colSpan={5}
+                            colSpan={6}
                             className="p-16 text-center text-slate-300 font-medium text-sm"
                           >
                             No teachers found
@@ -1560,6 +1837,10 @@ export default function AdminPortal() {
                     {modalType === "fee" && "Add Fee"}
                     {modalType === "exam" && "Schedule Exam"}
                     {modalType === "notification" && "Send Notification"}
+                    {modalType === "teacher" && "Add Teacher"}
+                    {modalType === "edit-teacher" && "Edit Teacher"}
+                    {modalType === "bulk-students" && "Bulk Upload Students"}
+                    {modalType === "bulk-marks" && "Bulk Upload Marks"}
                   </h3>
                 </div>
                 <button
@@ -1857,6 +2138,248 @@ export default function AdminPortal() {
                           </option>
                         ))}
                       </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Teacher Form ────────────────────────────────── */}
+                {modalType === "teacher" && (
+                  <div className="space-y-4">
+                    <InputField
+                      name="name"
+                      label="Full Name"
+                      placeholder="John Doe"
+                      required
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <InputField
+                        name="email"
+                        label="Email"
+                        type="email"
+                        placeholder="teacher@example.com"
+                        required
+                      />
+                      <InputField
+                        name="phone"
+                        label="Phone"
+                        placeholder="+91 98765 43210"
+                      />
+                    </div>
+                    <InputField
+                      name="experience"
+                      label="Experience"
+                      placeholder="e.g. 5 years"
+                    />
+                    {subjects.length > 0 && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                          Subjects
+                        </label>
+                        <div className="grid grid-cols-2 gap-2 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                          {subjects.map((sub: any) => (
+                            <label
+                              key={sub.id}
+                              className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                name="subjectIds"
+                                value={sub.id}
+                                className="rounded border-slate-300 text-[#197fe6] focus:ring-[#197fe6]"
+                              />
+                              {sub.name}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Edit Teacher Form ──────────────────────────── */}
+                {modalType === "edit-teacher" && editingTeacher && (
+                  <div className="space-y-4">
+                    <InputField
+                      name="name"
+                      label="Full Name"
+                      placeholder="John Doe"
+                      defaultValue={editingTeacher.name || ""}
+                      required
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <InputField
+                        name="email"
+                        label="Email"
+                        type="email"
+                        placeholder="teacher@example.com"
+                        defaultValue={editingTeacher.user?.email || ""}
+                        required
+                      />
+                      <InputField
+                        name="phone"
+                        label="Phone"
+                        placeholder="+91 98765 43210"
+                        defaultValue={editingTeacher.phone || ""}
+                      />
+                    </div>
+                    <InputField
+                      name="experience"
+                      label="Experience"
+                      placeholder="e.g. 5 years"
+                      defaultValue={editingTeacher.experience || ""}
+                    />
+                    {subjects.length > 0 && (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                          Subjects
+                        </label>
+                        <div className="grid grid-cols-2 gap-2 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                          {subjects.map((sub: any) => (
+                            <label
+                              key={sub.id}
+                              className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                name="subjectIds"
+                                value={sub.id}
+                                defaultChecked={editingTeacher.subjects?.some(
+                                  (ts: any) => ts.subjectId === sub.id || ts.subject?.id === sub.id
+                                )}
+                                className="rounded border-slate-300 text-[#197fe6] focus:ring-[#197fe6]"
+                              />
+                              {sub.name}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Bulk Students Form ─────────────────────────── */}
+                {modalType === "bulk-students" && (
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                      <p className="text-xs font-bold text-blue-700 mb-1">CSV Format</p>
+                      <p className="text-[11px] text-blue-600 font-mono break-all">
+                        fullName,email,phone,dateOfBirth,gender,bloodGroup,rollNumber,parentName,parentPhone,parentEmail,address,city,state
+                      </p>
+                      <p className="text-[10px] text-blue-500 mt-1">
+                        First row should be the header. One student per line.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      {sections.length > 0 && (
+                        <SelectField
+                          name="bulkSectionId"
+                          label="Section"
+                          options={["", ...sections.map((s: any) => s.id)]}
+                          optionLabels={[
+                            "Select section...",
+                            ...sections.map(
+                              (s: any) => `${s.class?.name || ""} - ${s.name}`
+                            ),
+                          ]}
+                        />
+                      )}
+                      <InputField
+                        name="bulkAcademicYear"
+                        label="Academic Year"
+                        placeholder="2025-26"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Paste CSV Data
+                      </label>
+                      <textarea
+                        value={bulkCsvText}
+                        onChange={(e) => setBulkCsvText(e.target.value)}
+                        rows={8}
+                        placeholder="fullName,email,phone,dateOfBirth,gender,bloodGroup,rollNumber,parentName,parentPhone,parentEmail,address,city,state&#10;Rahul Sharma,rahul@test.com,9876543210,2015-03-15,Male,B+,101,Mr. Sharma,9876543211,parent@test.com,Street 1,Mumbai,Maharashtra"
+                        className="w-full bg-slate-50 border border-slate-100 p-4 rounded-xl text-sm font-mono focus:ring-4 focus:ring-[#197fe6]/5 focus:bg-white focus:border-[#197fe6] transition-all outline-none resize-none"
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={downloadStudentTemplate}
+                        className="flex-1 py-3 rounded-xl bg-slate-50 text-slate-600 font-bold text-xs hover:bg-slate-100 transition-all border border-slate-200 flex items-center justify-center gap-2"
+                      >
+                        <Download size={14} /> Download Template
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const form = document.querySelector('select[name="bulkSectionId"]') as HTMLSelectElement;
+                          const yearInput = document.querySelector('input[name="bulkAcademicYear"]') as HTMLInputElement;
+                          handleBulkStudentsUpload(
+                            form?.value || "",
+                            yearInput?.value || ""
+                          );
+                        }}
+                        disabled={isSubmitting}
+                        className="flex-[2] py-3 rounded-xl bg-[#197fe6] text-white font-bold text-xs shadow-xl shadow-[#197fe6]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isSubmitting ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Upload size={14} /> Upload Students
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Bulk Marks Form ────────────────────────────── */}
+                {modalType === "bulk-marks" && (
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                      <p className="text-xs font-bold text-blue-700 mb-1">CSV Format</p>
+                      <p className="text-[11px] text-blue-600 font-mono">
+                        studentId,subjectCode,marksObtained,totalMarks
+                      </p>
+                      <p className="text-[10px] text-blue-500 mt-1">
+                        First row should be the header. One entry per line. Use student IDs and subject codes/names.
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Paste CSV Data
+                      </label>
+                      <textarea
+                        value={bulkMarksCsvText}
+                        onChange={(e) => setBulkMarksCsvText(e.target.value)}
+                        rows={8}
+                        placeholder="studentId,subjectCode,marksObtained,totalMarks&#10;STU001,MATH,45,50&#10;STU001,ENG,38,50"
+                        className="w-full bg-slate-50 border border-slate-100 p-4 rounded-xl text-sm font-mono focus:ring-4 focus:ring-[#197fe6]/5 focus:bg-white focus:border-[#197fe6] transition-all outline-none resize-none"
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={downloadMarksTemplate}
+                        className="flex-1 py-3 rounded-xl bg-slate-50 text-slate-600 font-bold text-xs hover:bg-slate-100 transition-all border border-slate-200 flex items-center justify-center gap-2"
+                      >
+                        <Download size={14} /> Download Template
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleBulkMarksUpload}
+                        disabled={isSubmitting}
+                        className="flex-[2] py-3 rounded-xl bg-[#197fe6] text-white font-bold text-xs shadow-xl shadow-[#197fe6]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isSubmitting ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            <Upload size={14} /> Upload Marks
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 )}

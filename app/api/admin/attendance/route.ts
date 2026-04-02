@@ -18,7 +18,18 @@ export async function GET(req: NextRequest) {
     const nextDay = new Date(date);
     nextDay.setDate(nextDay.getDate() + 1);
 
+    const sectionId = searchParams.get("sectionId");
+
     const students = await prisma.student.findMany({
+      where: sectionId
+        ? {
+            enrollments: {
+              some: {
+                sectionId,
+              },
+            },
+          }
+        : undefined,
       select: {
         id: true,
         fullName: true,

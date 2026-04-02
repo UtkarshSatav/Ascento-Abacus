@@ -96,3 +96,62 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { examId, marks } = body;
+
+    if (!examId || !marks || !Array.isArray(marks) || marks.length === 0) {
+      return NextResponse.json(
+        { error: "examId and a non-empty marks array are required" },
+        { status: 400 }
+      );
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      let count = 0;
+
+      for (const entry of marks) {
+        const { studentId, subjectId, marksObtained, totalMarks } = entry;
+
+        if (!studentId || !subjectId || totalMarks === undefined) {
+          continue;
+        }
+
+        await tx.mark.upsert({
+          where: {
+            studentId_examId_subjectId: {
+              studentId,
+              examId,
+              subjectId,
+            },
+          },
+          update: {
+            marksObtained,
+            totalMarks,
+          },
+          create: {
+            studentId,
+            examId,
+            subjectId,
+            marksObtained,
+            totalMarks,
+          },
+        });
+
+        count++;
+      }
+
+      return count;
+    });
+
+    return NextResponse.json({ success: true, count: result });
+  } catch (error) {
+    console.error("Bulk upsert marks error:", error);
+    return NextResponse.json(
+      { error: "Failed to bulk save marks" },
+      { status: 500 }
+    );
+  }
+}
