@@ -44,8 +44,8 @@ export function BarChartMini({ data, labels, color = "#197fe6" }: { data: number
         return (
           <g key={i}>
             <rect x={x} y={y} width={barW} height={barH} rx="4" fill={color} opacity="0.85" />
-            <text x={x + barW / 2} y={h - 5} textAnchor="middle" fontSize="9" fill="#9ca3af">{labels[i]}</text>
-            <text x={x + barW / 2} y={y - 3} textAnchor="middle" fontSize="9" fill="#e5e7eb">{v}</text>
+            <text x={x + barW / 2} y={h - 5} textAnchor="middle" fontSize="9" fill="#4b5563">{labels[i]}</text>
+            <text x={x + barW / 2} y={y - 3} textAnchor="middle" fontSize="9" fill="#374151">{v}</text>
           </g>
         );
       })}
@@ -59,11 +59,11 @@ export function CircleProgress({ pct, size = 100, stroke = 10, color = "#197fe6"
   const dash = (pct / 100) * circ;
   return (
     <svg width={size} height={size}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#374151" strokeWidth={stroke} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="#cbd5e1" strokeWidth={stroke} />
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
         strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
         transform={`rotate(-90 ${size/2} ${size/2})`} />
-      <text x={size/2} y={size/2 + 5} textAnchor="middle" fontSize="15" fontWeight="700" fill="#f9fafb">{pct}%</text>
+      <text x={size/2} y={size/2 + 5} textAnchor="middle" fontSize="15" fontWeight="700" fill="#111827">{pct}%</text>
     </svg>
   );
 }
@@ -91,7 +91,7 @@ export function AttendanceCalendar() {
 // --- SKELETON LOADER ---
 export function Skeleton({ w = "100%", h = 16, r = 6 }: { w?: string | number, h?: string | number, r?: number }) {
   return (
-    <div style={{ width: w, height: h, borderRadius: r, background: "linear-gradient(90deg,#1f2937 25%,#374151 50%,#1f2937 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s infinite" }} />
+    <div style={{ width: w, height: h, borderRadius: r, background: "linear-gradient(90deg,#e2e8f0 25%,#cbd5e1 50%,#e2e8f0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s infinite" }} />
   );
 }
 
@@ -107,7 +107,7 @@ export function Card({ children, style = {}, onClick }: { children: React.ReactN
   return (
     <div 
       onClick={onClick}
-      style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 16, padding: 20, ...style }}
+      style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 20, ...style }}
     >
       {children}
     </div>
@@ -117,7 +117,7 @@ export function Card({ children, style = {}, onClick }: { children: React.ReactN
 export function SectionTitle({ title, sub }: { title: string, sub?: string }) {
   return (
     <div style={{ marginBottom: 18 }}>
-      <div style={{ fontSize: 17, fontWeight: 700, color: "#f9fafb" }}>{title}</div>
+      <div style={{ fontSize: 17, fontWeight: 700, color: "#111827" }}>{title}</div>
       {sub && <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{sub}</div>}
     </div>
   );
