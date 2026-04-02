@@ -2,9 +2,6 @@
 
 import { useState, useEffect, createContext, useContext, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 import {
   StudentProfile, KPI, Subject, ExamItem, FeeItem, ResultItem,
   TeacherItem, NotificationItem, AttendanceData, TimetableData, DocumentItem,
@@ -96,8 +93,7 @@ export default function StudentPortal() {
   const [page, setPage] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(false);
   const router = useRouter();
 
   // ─── Live data state ─────────────────────────────────────────────────────
@@ -143,36 +139,10 @@ export default function StudentPortal() {
     }
   }, []);
 
-  // ─── Auth Flow ───────────────────────────────────────────────────────────
+  // ─── Load data on mount ──────────────────────────────────────────────────
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, "Users", firebaseUser.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const role = (userData.Role || "User").trim().toLowerCase();
-
-          if (role === "student" || role === "user") {
-            setUser(firebaseUser);
-            setAuthLoading(false);
-
-            // Fetch data from PostgreSQL
-            fetchAllData();
-          } else {
-            router.push("/profile");
-          }
-        } else {
-          // No Firestore doc — still load portal with DB data
-          setUser(firebaseUser);
-          setAuthLoading(false);
-          fetchAllData();
-        }
-      } else {
-        router.push("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, [router, fetchAllData]);
+    fetchAllData();
+  }, [fetchAllData]);
 
   const navigate = (id: string) => {
     setLoading(true);
