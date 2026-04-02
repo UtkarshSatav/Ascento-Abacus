@@ -28,9 +28,6 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { auth, db } from "../../lib/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 
 type Tab =
   | "dashboard"
@@ -45,9 +42,7 @@ type Tab =
 
 export default function AdminPortal() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
-  const [authLoading, setAuthLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [userData, setUserData] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(false);
 
   // Dashboard stats
   const [dashboardStats, setDashboardStats] = useState<any>(null);
@@ -85,29 +80,17 @@ export default function AdminPortal() {
 
   const router = useRouter();
 
-  // ── Auth Guard ──────────────────────────────────────────────────────
+  // ── Load data on mount ─────────────────────────────────────────────
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, "Users", firebaseUser.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          if (data.Role?.trim().toLowerCase() === "admin") {
-            setUser(firebaseUser);
-            setUserData(data);
-            setAuthLoading(false);
-          } else {
-            router.push("/profile");
-          }
-        } else {
-          router.push("/login");
-        }
-      } else {
-        router.push("/login");
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
+    fetchDashboard();
+    fetchStudents();
+    fetchEnquiries();
+    fetchExams();
+    fetchTeachers();
+    fetchNotifications();
+    fetchSections();
+    fetchSubjects();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Data Fetchers ───────────────────────────────────────────────────
   const showToast = useCallback((msg: string) => {
@@ -233,7 +216,6 @@ export default function AdminPortal() {
 
   // ── Load data when tab changes ──────────────────────────────────────
   useEffect(() => {
-    if (!user) return;
     setDataLoading(true);
     const load = async () => {
       switch (activeTab) {
@@ -269,7 +251,6 @@ export default function AdminPortal() {
     };
     load();
   }, [
-    user,
     activeTab,
     fetchDashboard,
     fetchStudents,
@@ -285,14 +266,13 @@ export default function AdminPortal() {
 
   // Refetch attendance when date changes
   useEffect(() => {
-    if (user && activeTab === "attendance") {
+    if (activeTab === "attendance") {
       fetchAttendance();
     }
-  }, [selectedDate, user, activeTab, fetchAttendance]);
+  }, [selectedDate, activeTab, fetchAttendance]);
 
   // ── Handlers ────────────────────────────────────────────────────────
-  const handleLogout = async () => {
-    await signOut(auth);
+  const handleLogout = () => {
     router.push("/login");
   };
 
@@ -568,7 +548,7 @@ export default function AdminPortal() {
               Logged in as
             </p>
             <p className="text-sm font-bold text-slate-900 truncate">
-              {userData?.Name || user.email}
+              Admin
             </p>
           </div>
         </div>
@@ -600,7 +580,7 @@ export default function AdminPortal() {
             </div>
             <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#197fe6] to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200 uppercase">
-                {userData?.Name?.[0] || "A"}
+                A
               </div>
             </div>
           </div>
