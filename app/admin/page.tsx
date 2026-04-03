@@ -30,6 +30,8 @@ import {
   Trash2,
   Edit3,
   Download,
+  Layers,
+  Table,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -42,7 +44,9 @@ type Tab =
   | "exams"
   | "marks"
   | "notifications"
-  | "teachers";
+  | "teachers"
+  | "sections"
+  | "timetable";
 
 export default function AdminPortal() {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
@@ -61,6 +65,11 @@ export default function AdminPortal() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [sections, setSections] = useState<any[]>([]);
+  const [domains, setDomains] = useState<any[]>([]);
+  const [timetableData, setTimetableData] = useState<Record<string, any[]>>({});
+  const [selectedTimetableSectionId, setSelectedTimetableSectionId] = useState("");
+  const [timetableEditing, setTimetableEditing] = useState(false);
+  const [timetableSlots, setTimetableSlots] = useState<Record<string, Record<number, {subjectId: string, teacherId: string}>>>({});
 
   // Marks
   const [selectedExamId, setSelectedExamId] = useState("");
@@ -102,6 +111,7 @@ export default function AdminPortal() {
     fetchNotifications();
     fetchSections();
     fetchSubjects();
+    fetchDomains();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Data Fetchers ───────────────────────────────────────────────────
@@ -228,6 +238,20 @@ export default function AdminPortal() {
     }
   }, []);
 
+  const fetchDomains = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/domains");
+      if (res.ok) setDomains(await res.json());
+    } catch (err) { console.error(err); }
+  }, []);
+
+  const fetchTimetable = useCallback(async (sectionId: string) => {
+    try {
+      const res = await fetch(`/api/admin/timetable?sectionId=${sectionId}`);
+      if (res.ok) setTimetableData(await res.json());
+    } catch (err) { console.error(err); }
+  }, []);
+
   // ── Load data when tab changes ──────────────────────────────────────
   useEffect(() => {
     setDataLoading(true);
@@ -260,6 +284,12 @@ export default function AdminPortal() {
         case "teachers":
           await Promise.all([fetchTeachers(), fetchSubjects()]);
           break;
+        case "sections":
+          await Promise.all([fetchSections(), fetchDomains()]);
+          break;
+        case "timetable":
+          await Promise.all([fetchSections(), fetchSubjects(), fetchTeachers()]);
+          break;
       }
       setDataLoading(false);
     };
@@ -276,6 +306,8 @@ export default function AdminPortal() {
     fetchNotifications,
     fetchSections,
     fetchSubjects,
+    fetchDomains,
+    fetchTimetable,
   ]);
 
   // Refetch attendance when date or section changes
@@ -335,6 +367,8 @@ export default function AdminPortal() {
         const form = e.currentTarget as HTMLFormElement;
         const checkedBoxes = form.querySelectorAll('input[name="subjectIds"]:checked');
         data.subjectIds = Array.from(checkedBoxes).map((cb: any) => cb.value);
+      } else if (modalType === "section") {
+        endpoint = "/api/admin/sections";
       }
 
       if (endpoint) {
@@ -360,6 +394,7 @@ export default function AdminPortal() {
         else if (modalType === "exam") fetchExams();
         else if (modalType === "notification") fetchNotifications();
         else if (modalType === "teacher" || modalType === "edit-teacher") fetchTeachers();
+        else if (modalType === "section") fetchSections();
 
         // Also refresh dashboard
         fetchDashboard();
@@ -491,6 +526,49 @@ export default function AdminPortal() {
       console.error("Delete teacher error:", err);
       alert(err.message || "Failed to delete teacher.");
     }
+  };
+
+  // ── Delete Section ─────────────────────────────────────────────
+  const deleteSection = async (id: string) => {
+    if (!confirm("Delete this section? This will fail if students are enrolled.")) return;
+    try {
+      const res = await fetch(`/api/admin/sections?id=${id}`, { method: "DELETE" });
+      if (res.ok) { fetchSections(); showToast("Section deleted"); }
+      else { const err = await res.json(); throw new Error(err.error); }
+    } catch (err: any) { alert(err.message || "Failed to delete section."); }
+  };
+
+  // ── Save Timetable ────────────────────────────────────────────
+  const saveTimetable = async () => {
+    if (!selectedTimetableSectionId) return;
+    setIsSubmitting(true);
+    try {
+      const slots: any[] = [];
+      const days = ["monday","tuesday","wednesday","thursday","friday","saturday"];
+      for (const day of days) {
+        for (let period = 1; period <= 8; period++) {
+          if (period === 4) continue;
+          const edited = timetableSlots[day]?.[period];
+          const existing = timetableData[day]?.find((s: any) => s.periodNumber === period);
+          const subjectId = edited?.subjectId ?? existing?.subjectId ?? null;
+          if (subjectId) {
+            slots.push({ dayOfWeek: day, periodNumber: period, subjectId, teacherId: edited?.teacherId || existing?.teacherId || null });
+          }
+        }
+      }
+      const res = await fetch("/api/admin/timetable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionId: selectedTimetableSectionId, slots }),
+      });
+      if (res.ok) {
+        showToast("Timetable saved");
+        setTimetableEditing(false);
+        setTimetableSlots({});
+        fetchTimetable(selectedTimetableSectionId);
+      } else throw new Error("Failed to save");
+    } catch (err: any) { alert(err.message || "Failed to save timetable."); }
+    finally { setIsSubmitting(false); }
   };
 
   // ── Edit Teacher ──────────────────────────────────────────────
@@ -690,6 +768,8 @@ export default function AdminPortal() {
       icon: BookOpen,
       badge: dashboardStats?.totalTeachers || teachers.length || null,
     },
+    { id: "sections", label: "Sections", icon: Layers },
+    { id: "timetable", label: "Timetable", icon: Table },
   ];
 
   const enquiryStatuses = ["New", "Follow-up", "Enrolled", "Closed"];
@@ -1784,6 +1864,144 @@ export default function AdminPortal() {
                 </div>
               </motion.div>
             )}
+
+            {activeTab === "sections" && (
+              <motion.div key="sections" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Sections</h2>
+                  <button onClick={() => openModal("section")} className="px-6 py-3.5 rounded-2xl bg-[#197fe6] text-white font-bold text-xs shadow-lg shadow-[#197fe6]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2">
+                    <Plus size={16} /> Add Section
+                  </button>
+                </div>
+
+                {sections.length === 0 ? (
+                  <div className="bg-white rounded-2xl border p-20 text-center text-slate-300">No sections yet</div>
+                ) : (
+                  <div className="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                          <th className="px-8 py-5">Section</th>
+                          <th className="px-8 py-5">Class</th>
+                          <th className="px-8 py-5">Domain</th>
+                          <th className="px-8 py-5">Students</th>
+                          <th className="px-8 py-5 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {sections.map((sec: any) => (
+                          <tr key={sec.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="px-8 py-4 font-bold text-slate-900 text-sm">{sec.sectionName || sec.name}</td>
+                            <td className="px-8 py-4 text-sm text-slate-500">{sec.className}</td>
+                            <td className="px-8 py-4"><span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[10px] font-bold">{sec.domain}</span></td>
+                            <td className="px-8 py-4 text-sm text-slate-500">{sec.enrollmentCount ?? sec._count?.enrollments ?? "—"}</td>
+                            <td className="px-8 py-4 text-right">
+                              <button onClick={() => deleteSection(sec.id)} className="p-2 rounded-xl hover:bg-red-50 text-slate-300 hover:text-red-500 transition-all">
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {activeTab === "timetable" && (
+              <motion.div key="timetable" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Timetable</h2>
+                  <div className="flex items-center gap-3">
+                    {timetableEditing && (
+                      <button onClick={saveTimetable} disabled={isSubmitting} className="px-6 py-3.5 rounded-2xl bg-[#197fe6] text-white font-bold text-xs shadow-lg flex items-center gap-2">
+                        <Save size={16} /> Save Timetable
+                      </button>
+                    )}
+                    {selectedTimetableSectionId && (
+                      <button onClick={() => setTimetableEditing(!timetableEditing)} className="px-6 py-3.5 rounded-2xl border border-slate-200 bg-white text-slate-700 font-bold text-xs flex items-center gap-2">
+                        <Edit3 size={16} /> {timetableEditing ? "Cancel" : "Edit"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Section Selector */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Select Section</label>
+                  <select value={selectedTimetableSectionId} onChange={(e) => {
+                    setSelectedTimetableSectionId(e.target.value);
+                    setTimetableEditing(false);
+                    if (e.target.value) fetchTimetable(e.target.value);
+                  }} className="w-full max-w-md bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-medium outline-none focus:border-[#197fe6]">
+                    <option value="">-- Choose a section --</option>
+                    {sections.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+
+                {/* Weekly Grid */}
+                {selectedTimetableSectionId && (
+                  <div className="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                            <th className="px-6 py-5 sticky left-0 bg-slate-50 z-10 min-w-[80px]">Period</th>
+                            {["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].map(day => (
+                              <th key={day} className="px-4 py-5 text-center min-w-[160px]">{day}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {[1,2,3,4,5,6,7,8].map(period => (
+                            <tr key={period} className="hover:bg-slate-50 transition-colors">
+                              <td className="px-6 py-3 sticky left-0 bg-white z-10 font-bold text-slate-900 text-sm">{period === 4 ? "Break" : `P${period}`}</td>
+                              {["monday","tuesday","wednesday","thursday","friday","saturday"].map(day => {
+                                const slot = timetableData[day]?.find((s: any) => s.periodNumber === period);
+                                if (timetableEditing && period !== 4) {
+                                  return (
+                                    <td key={day} className="px-2 py-2">
+                                      <select value={timetableSlots[day]?.[period]?.subjectId || slot?.subjectId || ""} onChange={(e) => {
+                                        setTimetableSlots(prev => ({...prev, [day]: {...(prev[day]||{}), [period]: {...(prev[day]?.[period]||{teacherId:""}), subjectId: e.target.value}}}));
+                                      }} className="w-full bg-slate-50 border border-slate-200 p-2 rounded-lg text-xs outline-none focus:border-[#197fe6]">
+                                        <option value="">Free</option>
+                                        {subjects.map((sub: any) => <option key={sub.id} value={sub.id}>{sub.name}</option>)}
+                                      </select>
+                                    </td>
+                                  );
+                                }
+                                return (
+                                  <td key={day} className="px-4 py-3 text-center">
+                                    {period === 4 ? (
+                                      <span className="text-xs text-slate-300 italic">—</span>
+                                    ) : slot ? (
+                                      <div>
+                                        <div className="text-sm font-bold text-slate-800">{slot.subject?.name || slot.subjectName || "—"}</div>
+                                        <div className="text-[10px] text-slate-400">{slot.teacher?.name || slot.teacherName || ""}</div>
+                                      </div>
+                                    ) : (
+                                      <span className="text-xs text-slate-300">—</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {!selectedTimetableSectionId && (
+                  <div className="bg-white rounded-2xl border border-slate-200 p-20 text-center">
+                    <Table size={48} className="mx-auto text-slate-200 mb-4" />
+                    <p className="text-slate-400 font-medium">Select a section above to view the timetable.</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
       </main>
@@ -1839,6 +2057,7 @@ export default function AdminPortal() {
                     {modalType === "notification" && "Send Notification"}
                     {modalType === "teacher" && "Add Teacher"}
                     {modalType === "edit-teacher" && "Edit Teacher"}
+                    {modalType === "section" && "Add Section"}
                     {modalType === "bulk-students" && "Bulk Upload Students"}
                     {modalType === "bulk-marks" && "Bulk Upload Marks"}
                   </h3>
@@ -2254,6 +2473,21 @@ export default function AdminPortal() {
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* ── Section Form ──────────────────────────────── */}
+                {modalType === "section" && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Domain</label>
+                      <select name="domainId" required className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl text-sm font-medium outline-none focus:border-[#197fe6]">
+                        <option value="">Select domain</option>
+                        {domains.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      </select>
+                    </div>
+                    <InputField name="className" label="Class Name" placeholder="e.g. Grade 10" required />
+                    <InputField name="sectionName" label="Section Name" placeholder="e.g. Section A" required />
                   </div>
                 )}
 
