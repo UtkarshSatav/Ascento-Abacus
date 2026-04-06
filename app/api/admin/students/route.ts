@@ -156,12 +156,13 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create student error:", error);
-    return NextResponse.json(
-      { error: "Failed to create student" },
-      { status: 500 }
-    );
+    const message =
+      error?.code === "P2002"
+        ? "A student with this email already exists"
+        : error?.message || "Failed to create student";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

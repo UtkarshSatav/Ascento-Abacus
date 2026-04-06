@@ -385,12 +385,11 @@ export default function AdminPortal() {
           body: JSON.stringify(data),
         });
 
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || "Request failed");
-        }
-
         const responseData = await res.json();
+
+        if (!res.ok) {
+          throw new Error(responseData.error || "Request failed");
+        }
 
         setIsModalOpen(false);
         setEditingTeacher(null);
