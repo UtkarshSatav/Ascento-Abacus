@@ -99,6 +99,14 @@ export default function AdminPortal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
 
+  // Student credentials modal (shown after creating a student)
+  const [showCredentials, setShowCredentials] = useState(false);
+  const [studentCredentials, setStudentCredentials] = useState<{
+    studentId: string;
+    loginEmail: string;
+    temporaryPassword: string;
+  } | null>(null);
+
   const router = useRouter();
 
   // ── Load data on mount ─────────────────────────────────────────────
@@ -339,8 +347,7 @@ export default function AdminPortal() {
 
       if (modalType === "student") {
         endpoint = "/api/admin/students";
-        // Convert amount strings to proper types
-        data.email = data.email || `${Date.now()}@placeholder.com`;
+        data.email = data.email || data.parentEmail || "";
       } else if (modalType === "enquiry") {
         endpoint = "/api/admin/enquiries";
       } else if (modalType === "fee") {
@@ -383,9 +390,18 @@ export default function AdminPortal() {
           throw new Error(err.error || "Request failed");
         }
 
+        const responseData = await res.json();
+
         setIsModalOpen(false);
         setEditingTeacher(null);
-        showToast("Saved successfully");
+
+        // Show credentials modal for student creation
+        if (modalType === "student" && responseData.credentials) {
+          setStudentCredentials(responseData.credentials);
+          setShowCredentials(true);
+        } else {
+          showToast("Saved successfully");
+        }
 
         // Refetch relevant data
         if (modalType === "student") fetchStudents();
@@ -2030,6 +2046,76 @@ export default function AdminPortal() {
         )}
       </AnimatePresence>
 
+      {/* ── Student Credentials Modal ────────────────────────────────── */}
+      <AnimatePresence>
+        {showCredentials && studentCredentials && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowCredentials(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 30 }}
+              className="bg-white rounded-3xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-[#197fe6] to-[#1565c0] p-8 text-center">
+                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 size={32} className="text-white" />
+                </div>
+                <h3 className="text-2xl font-black text-white">Student Account Created</h3>
+                <p className="text-blue-100 text-sm mt-2">Share these login credentials with the student/parent</p>
+              </div>
+
+              {/* Credentials */}
+              <div className="p-8 space-y-4">
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Student ID</label>
+                  <p className="text-lg font-bold text-slate-900 mt-1 font-mono">{studentCredentials.studentId}</p>
+                </div>
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Login Email</label>
+                  <p className="text-lg font-bold text-slate-900 mt-1">{studentCredentials.loginEmail}</p>
+                </div>
+                <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                  <label className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Temporary Password</label>
+                  <p className="text-xl font-black text-amber-700 mt-1 font-mono tracking-wider">{studentCredentials.temporaryPassword}</p>
+                  <p className="text-[11px] text-amber-600 mt-2">Student must change this password on first login</p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => {
+                      const text = `Student ID: ${studentCredentials.studentId}\nLogin Email: ${studentCredentials.loginEmail}\nTemporary Password: ${studentCredentials.temporaryPassword}`;
+                      navigator.clipboard.writeText(text);
+                      showToast("Credentials copied to clipboard");
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#197fe6] text-white py-4 rounded-2xl font-bold text-sm hover:bg-[#1565c0] transition-colors"
+                  >
+                    <ClipboardList size={18} />
+                    Copy Credentials
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCredentials(false);
+                      setStudentCredentials(null);
+                    }}
+                    className="px-8 py-4 rounded-2xl font-bold text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Modal Layer ─────────────────────────────────────────────── */}
       <AnimatePresence>
         {isModalOpen && (
@@ -2075,6 +2161,10 @@ export default function AdminPortal() {
                 {/* ── Student Form ──────────────────────────────────── */}
                 {modalType === "student" && (
                   <div className="space-y-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-2">
+                      <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Auto-Generated Credentials</p>
+                      <p className="text-[13px] text-blue-700">A Student ID and temporary password will be generated automatically. You&apos;ll see the login credentials after saving.</p>
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                       <InputField
                         name="fullName"
@@ -2082,31 +2172,18 @@ export default function AdminPortal() {
                         placeholder="Rahul Sharma"
                         required
                       />
-                      <InputField
-                        name="email"
-                        label="Email"
-                        type="email"
-                        placeholder="rahul@example.com"
-                        required
+                      <SelectField
+                        name="gender"
+                        label="Gender"
+                        options={["male", "female", "other"]}
+                        optionLabels={["Male", "Female", "Other"]}
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <InputField
-                        name="phone"
-                        label="Phone"
-                        placeholder="+91 98765 43210"
-                      />
                       <InputField
                         name="dateOfBirth"
                         label="Date of Birth"
                         type="date"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <SelectField
-                        name="gender"
-                        label="Gender"
-                        options={["Male", "Female", "Other"]}
                       />
                       <SelectField
                         name="bloodGroup"
@@ -2124,27 +2201,30 @@ export default function AdminPortal() {
                       />
                     </div>
                     <InputField
-                      name="rollNumber"
-                      label="Roll Number"
-                      placeholder="e.g. 101"
+                      name="phone"
+                      label="Student Phone"
+                      placeholder="+91 98765 43210"
                     />
                     <div className="grid grid-cols-2 gap-4">
                       <InputField
                         name="parentName"
-                        label="Parent Name"
+                        label="Parent / Guardian Name"
                         placeholder="Mr. Sharma"
+                        required
                       />
                       <InputField
                         name="parentPhone"
                         label="Parent Phone"
                         placeholder="+91 98765 43210"
+                        required
                       />
                     </div>
                     <InputField
                       name="parentEmail"
-                      label="Parent Email"
+                      label="Parent Email (used for login)"
                       type="email"
                       placeholder="parent@example.com"
+                      required
                     />
                     <InputField
                       name="address"
@@ -2155,12 +2235,12 @@ export default function AdminPortal() {
                       <InputField
                         name="city"
                         label="City"
-                        placeholder="Mumbai"
+                        placeholder="New Delhi"
                       />
                       <InputField
                         name="state"
                         label="State"
-                        placeholder="Maharashtra"
+                        placeholder="Delhi"
                       />
                     </div>
                     {sections.length > 0 && (

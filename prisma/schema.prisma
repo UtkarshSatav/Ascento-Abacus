@@ -16,14 +16,16 @@ enum UserRole {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  firebaseUid   String?   @unique
-  email         String    @unique
-  name          String
-  role          UserRole  @default(user)
-  avatarUrl     String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                  String    @id @default(uuid())
+  firebaseUid         String?   @unique
+  email               String    @unique
+  name                String
+  role                UserRole  @default(user)
+  avatarUrl           String?
+  passwordHash        String?
+  isPasswordTemporary Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   // Relations
   student       Student?
