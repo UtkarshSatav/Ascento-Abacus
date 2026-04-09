@@ -320,6 +320,125 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Meet Our Team Section */}
+        <section className="py-24 bg-white dark:bg-[#0e141b]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <FadeIn>
+                <h2 className="text-[#f59e0b] font-bold text-sm uppercase tracking-[0.2em] mb-4">Our Educators</h2>
+                <h3 className="text-3xl md:text-5xl font-black text-[#0e141b] dark:text-white tracking-tight">Meet the Team Behind <span className="text-[#197fe6]">Every Success</span></h3>
+                <p className="text-slate-500 dark:text-slate-400 mt-4 max-w-2xl mx-auto leading-relaxed">Passionate educators and caregivers dedicated to nurturing young minds with experience, expertise, and love.</p>
+              </FadeIn>
+            </div>
+
+            {/* Principal — Featured Card */}
+            <FadeIn>
+              <div className="mb-12 bg-gradient-to-br from-[#197fe6]/5 to-[#f59e0b]/5 dark:from-[#197fe6]/10 dark:to-[#f59e0b]/10 rounded-3xl border border-slate-200 dark:border-slate-700 p-8 lg:p-12">
+                <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-start">
+                  <div className="shrink-0 size-28 lg:size-32 bg-gradient-to-br from-[#197fe6] to-[#197fe6]/70 rounded-3xl flex items-center justify-center shadow-xl shadow-[#197fe6]/20">
+                    <span className="text-white font-black text-4xl lg:text-5xl">BT</span>
+                  </div>
+                  <div className="flex-1 text-center lg:text-left">
+                    <div className="inline-flex items-center gap-2 bg-[#f59e0b]/10 text-[#f59e0b] px-3 py-1 rounded-full mb-3">
+                      <span className="material-symbols-outlined text-sm">stars</span>
+                      <span className="text-xs font-bold uppercase tracking-wider">Principal</span>
+                    </div>
+                    <h4 className="text-2xl lg:text-3xl font-black text-[#0e141b] dark:text-white mb-1">Mrs. Bala Tomar</h4>
+                    <p className="text-[#197fe6] font-semibold text-sm mb-4">M.A., B.Ed., NET Qualified &bull; 27 Years Experience</p>
+                    <p className="text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
+                      A distinguished educationist and the visionary leader of Ascento Play School, Dwarka. Mrs. Tomar brings 27 years of rich experience in teaching, academic leadership, and student development. She believes in a child-centric, activity-based learning approach where education goes beyond books.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {["Right Brain Development", "Midbrain Activation", "Abacus & Vedic Maths", "Hindi & Sanskrit Expert", "Teacher Mentoring", "Franchise Training"].map((tag) => (
+                        <span key={tag} className="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Other Team Members */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  initials: "KS",
+                  name: "Mrs. Kashish Sheopuri",
+                  role: "Office Admin & Play School Teacher",
+                  qual: "B.Com, Computer Diploma",
+                  exp: "2 Years",
+                  desc: "Efficiently manages administrative responsibilities while actively engaging with young learners through interactive, activity-based teaching methods.",
+                  color: "from-emerald-500 to-emerald-400",
+                  shadow: "shadow-emerald-500/20",
+                  tags: ["Administration", "Interactive Teaching"]
+                },
+                {
+                  initials: "AR",
+                  name: "Mrs. Aarti Rathore",
+                  role: "Senior Teacher (Play School – Class 2)",
+                  qual: "M.A., Computer Diploma",
+                  exp: "8 Years",
+                  desc: "A seasoned educator shaping foundational learners from Play School to Class 2 with activity-based, practical teaching that builds understanding and confidence.",
+                  color: "from-[#197fe6] to-blue-400",
+                  shadow: "shadow-[#197fe6]/20",
+                  tags: ["Early Education", "Classroom Management"]
+                },
+                {
+                  initials: "SS",
+                  name: "Ms. Soni Sehgal",
+                  role: "Teacher (Pre-Nursery & Nursery)",
+                  qual: "B.A., Basic Computer Diploma",
+                  exp: "4 Years",
+                  desc: "A sincere and hardworking educator dedicated to creating a nurturing atmosphere where the youngest learners feel encouraged to explore and grow.",
+                  color: "from-[#f59e0b] to-amber-400",
+                  shadow: "shadow-[#f59e0b]/20",
+                  tags: ["Pre-Nursery", "Nursery"]
+                },
+                {
+                  initials: "SV",
+                  name: "Mrs. Santosh Verma",
+                  role: "Kids Care Assistant (Nanny)",
+                  qual: "Pre-Nursery & Nursery Support",
+                  exp: "35 Years",
+                  desc: "With an extraordinary 35 years of child care experience, she ensures every child's safety, comfort, and emotional well-being with warmth and dedication.",
+                  color: "from-rose-500 to-pink-400",
+                  shadow: "shadow-rose-500/20",
+                  tags: ["Child Care", "Safety & Comfort"]
+                }
+              ].map((member, idx) => (
+                <FadeIn key={idx} delay={idx * 0.1}>
+                  <div className="group bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-transparent hover:border-[#197fe6]/20 transition-all hover:shadow-xl p-6 flex flex-col h-full">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className={`shrink-0 size-14 bg-gradient-to-br ${member.color} rounded-2xl flex items-center justify-center ${member.shadow} shadow-lg transition-transform group-hover:scale-110`}>
+                        <span className="text-white font-black text-lg">{member.initials}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-base font-bold text-[#0e141b] dark:text-white truncate">{member.name}</h4>
+                        <p className="text-[#197fe6] text-xs font-semibold truncate">{member.role}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 mb-3 text-xs text-slate-500 dark:text-slate-400">
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm">school</span>
+                        {member.qual}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 mb-4">
+                      <span className="bg-[#197fe6]/10 text-[#197fe6] text-xs font-bold px-2.5 py-1 rounded-full">{member.exp}</span>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed flex-1 mb-4">{member.desc}</p>
+                    <div className="flex flex-wrap gap-1.5 mt-auto">
+                      {member.tags.map((tag) => (
+                        <span key={tag} className="bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] font-semibold px-2 py-1 rounded-full border border-slate-200 dark:border-slate-600">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* CTA Banner Section */}
         <section className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
